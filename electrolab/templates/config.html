@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Configurações - ElectroLab AI{% endblock %}
+
+{% block content %}
+<div style="padding: 20px 30px 0 50px;">
+    <img src="{% static 'logo.jfif' %}" alt="ElectroLab AI" style="height: 50px; border-radius: 8px;">
+</div>
+
+<div class="container" style="max-width: 650px; margin-top: 10px;">
+    <div style="background: var(--deep-navy); padding: 35px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+        <h1 style="margin-top: 0; margin-bottom: 25px;">⚙️ Central de Configurações</h1>
+        
+        <!-- MODO ESCURO / CLARO -->
+        <div style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <label style="margin-bottom: 2px;">Modo Dark (Escuro)</label>
+                <span style="color: var(--text-muted); font-size: 0.85rem;">Alternar entre interface escura ou limpa</span>
+            </div>
+            <input type="checkbox" id="darkModeToggle" style="width: 25px; height: 25px; accent-color: var(--vibrant-cyan); cursor: pointer;" onchange="updateDarkMode(this)">
+        </div>
+
+        <!-- NOTIFICAÇÕES -->
+        <div style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <label style="margin-bottom: 2px;">Notificações Globais</label>
+                <span style="color: var(--text-muted); font-size: 0.85rem;">Alertar término de tarefas em segundo plano</span>
+            </div>
+            <input type="checkbox" id="notifToggle" checked style="width: 25px; height: 25px; accent-color: var(--vibrant-cyan); cursor: pointer;" onchange="updateNotifications(this)">
+        </div>
+
+        <!-- 6 TEMAS DE CORES -->
+        <div style="margin-bottom: 30px;">
+            <label>Paleta de Cores e Temas (6 Opções)</label>
+            <select id="themeSelector" style="margin-top: 8px;" onchange="updateTheme(this.value)">
+                <option value="theme-cyan-purple">⚡ Cyber Cyan & Electric Purple (Padrão)</option>
+                <option value="theme-matrix-green">🟢 Matrix Green (Hacker Tech)</option>
+                <option value="theme-amber-tech">🟠 Amber Tech (Monocromático Retrô)</option>
+                <option value="theme-crimson-red">🔴 Crimson Red (Hardware Perigo)</option>
+                <option value="theme-electric-blue">🔵 Electric Blue (Deep Ocean)</option>
+                <option value="theme-neon-yellow">🟡 Neon Yellow (Industrial Alta Visibilidade)</option>
+            </select>
+        </div>
+
+        <button onclick="alert('Configurações aplicadas e salvas com sucesso!')" style="width: 100%; padding: 15px; font-size: 16px;">Salvar Preferências</button>
+    </div>
+</div>
+
+<script>
+    // CARREGA OS ESTADOS ATUAIS NOS INPUTS AO ABRIR A TELA
+    window.addEventListener('DOMContentLoaded', () => {
+        const isLight = document.body.classList.contains('light-mode');
+        document.getElementById('darkModeToggle').checked = !isLight;
+
+        const currentTheme = localStorage.getItem('electrolab_theme') || 'theme-cyan-purple';
+        document.getElementById('themeSelector').value = currentTheme;
+    });
+
+    // FUNÇÃO DE ALTERAR DARK/LIGHT EM TEMPO REAL
+    function updateDarkMode(checkbox) {
+        if (checkbox.checked) {
+            document.body.classList.remove('light-mode');
+            localStorage.setItem('electrolab_darkmode', 'true');
+        } else {
+            document.body.classList.add('light-mode');
+            localStorage.setItem('electrolab_darkmode', 'false');
+        }
+    }
+
+    // FUNÇÃO DE TROCAR OS 6 TEMAS EM TEMPO REAL
+    function updateTheme(themeName) {
+        // Remove classes de temas anteriores
+        document.body.className = document.body.className.replace(/theme-\S+/g, '');
+        // Adiciona o novo tema
+        document.body.classList.add(themeName);
+        localStorage.setItem('electrolab_theme', themeName);
+    }
+
+    function updateNotifications(checkbox) {
+        localStorage.setItem('electrolab_notifications', checkbox.checked);
+    }
+</script>
+{% endblock %}

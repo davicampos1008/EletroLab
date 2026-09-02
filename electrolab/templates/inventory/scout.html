@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Garimpo Inteligente - ElectroLab AI{% endblock %}
+
+{% block content %}
+<div style="padding: 20px 30px 0 50px;">
+    <img src="{% static 'logo.jfif' %}" alt="ElectroLab AI" style="height: 50px; border-radius: 8px;">
+</div>
+
+<div class="container" style="max-width: 800px; margin-top: 15px;">
+    <div style="background: var(--deep-navy); padding: 35px; border-radius: 16px; border: 1px solid rgba(0,255,255,0.1);">
+        
+        <h1 style="margin-top: 0; margin-bottom: 10px;">🔍 Radar de Garimpo & Sucata</h1>
+        <p style="color: var(--text-muted); margin-bottom: 25px;">Achou algo na rua ou na oficina? Tire uma foto com a câmera para a IA avaliar se vale a pena resgatar e quais peças vai lucrar.</p>
+
+        <!-- FORMULÁRIO COM CÂMERA -->
+        <form method="post" enctype="multipart/form-data" id="scoutForm">
+            {% csrf_token %}
+            <div style="margin-bottom: 20px;">
+                <label>Foto do Item Encontrado</label>
+                <input type="file" name="image" accept="image/*" capture="environment" required style="padding: 10px; cursor: pointer;">
+            </div>
+            <button type="submit" id="btnScout" style="width: 100%; padding: 14px; background: linear-gradient(135deg, var(--vibrant-cyan) 0%, #0088AA 100%); color: #121218;">
+                🚀 Analisar Viabilidade do Item
+            </button>
+        </form>
+
+        <!-- PAINEL DE RESULTADO E VEREDITO -->
+        <div id="resultadoGarimpo" style="margin-top: 30px; display: none;">
+            
+            <!-- CAIXA DE VEREDITO -->
+            <div id="veredictoBox" style="padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: center; border: 2px solid;">
+                <h2 id="txtVeredicto" style="margin: 0 0 5px 0; font-size: 1.8rem;"></h2>
+                <p id="txtMotivo" style="margin: 0; font-size: 0.95rem;"></p>
+            </div>
+
+            <div style="background: rgba(18,18,24,0.5); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <h3 id="itemName" style="color: var(--vibrant-cyan); margin-top: 0;"></h3>
+                <p><b>O que é:</b> <span id="itemOqE"></span></p>
+                <p><b>Viabilidade de Reparo:</b> <span id="itemConserto"></span></p>
+            </div>
+
+            <h3 style="margin-bottom: 12px;">📦 Componentes Extraíveis (Caso pegue como sucata):</h3>
+            
+            <form method="post" action="{% url 'save_inventory_batch' %}">
+                {% csrf_token %}
+                <input type="hidden" name="equipamento_origem" id="scoutOrigem">
+                <div id="scoutPecasContainer" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px;"></div>
+
+                <!-- BOTÕES DE AÇÃO: PEGUEI / NÃO PEGUEI -->
+                <div style="display: flex; gap: 15px;">
+                    <button type="submit" id="btnPeguei" style="flex: 1; padding: 15px; background: linear-gradient(135deg, #00FF66 0%, #008833 100%); color: #121218; font-size: 16px;">
+                        ✅ PEGUEI (Adicionar ao Estoque)
+                    </button>
+                    <a href="{% url 'home_view' %}" style="flex: 1; text-align: center; background: #333344; color: white; padding: 15px; border-radius: 12px; font-weight: bold; text-decoration: none; display: flex; align-items: center; justify-content: center;">
+                        ❌ NÃO PEGUEI (Descartar)
+                    </a>
+                </div>
+            </form>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const scoutForm = document.getElementById('scoutForm');
+    scoutForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnScout');
+        btn.innerText = "🔍 Avaliando item e peças...";
+        btn.disabled = true;
+
+        const formData = new FormData(scoutForm);
+        try {
+            const response = await fetch("", { method: 'POST', body: formData, headers: {'X-Requested-With': 'XMLHttpRequest'} });
+            const data = await response.json();
+            
+            if(data.status === 'sucesso') {
+                const res = data.dados;
+                document.getElementById('resultadoGarimpo').style.display = 'block';
+                document.getElementById('itemName').innerText = res.nome_item;
+                document.getElementById('itemOqE').innerText = res.o_que_e;
+                document.getElementById('itemConserto').innerText = res.possivel_consertar;
+                document.getElementById('scoutOrigem').value = res.nome_item;
+
+                // Estiliza o veredito (DEVE PEGAR vs NÃO DEVE PEGAR)
+                const vBox = document.getElementById('veredictoBox');
+                const vTxt = document.getElementById('txtVeredicto');
+                const mTxt = document.getElementById('txtMotivo');
+
+                if (res.veredito.toUpperCase().includes("DEVE PEGAR")) {
+                    vBox.style.background = "rgba(0, 255, 102, 0.1)";
+                    vBox.style.borderColor = "#00FF66";
+                    vTxt.style.color = "#00FF66";
+                    vTxt.innerText = "⭐ RECOMENDADO: DEVE PEGAR!";
+                } else {
+                    vBox.style.background = "rgba(255, 68, 68, 0.1)";
+                    vBox.style.borderColor = "#FF4444";
+                    vTxt.style.color = "#FF4444";
+                    vTxt.innerText = "⚠️ ALERTA: NÃO DEVE PEGAR";
+                }
+                mTxt.innerText = res.motivo_veredito;
+
+                // Monta lista de peças
+                const container = document.getElementById('scoutPecasContainer');
+                container.innerHTML = '';
+                
+                res.pecas_sucata.forEach((peca, index) => {
+                    container.innerHTML += `
+                        <div style="background: rgba(18,18,24,0.6); padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <input type="hidden" name="peca_nome_${index}" value="${peca.nome}">
+                                <input type="hidden" name="peca_desc_${index}" value="${peca.utilidade}">
+                                <b>${peca.nome}</b><br>
+                                <small style="color: var(--text-muted);">${peca.utilidade}</small>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <label style="margin: 0; font-size: 11px;">Qtd:</label>
+                                <input type="number" name="peca_qtd_${index}" value="${peca.quantidade_estimada}" style="width: 70px; padding: 5px; text-align: center;">
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                alert("Erro ao processar imagem de garimpo.");
+            }
+        } catch (err) {
+            alert("Erro de conexão.");
+        } finally {
+            btn.innerText = "🚀 Analisar Viabilidade do Item";
+            btn.disabled = false;
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Início - ElectroLab AI{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; margin-top: 30px; margin-bottom: 10px;">
+    <img src="{% static 'logo.jfif' %}" alt="ElectroLab AI" style="width: 300px; max-width: 80%; border-radius: 20px; box-shadow: 0 0 30px rgba(0, 255, 255, 0.15); border: 1px solid rgba(0, 255, 255, 0.1);">
+</div>
+
+<div class="container" style="max-width: 900px; text-align: center; margin-top: 15px;">
+    <h1 style="font-size: 1.8rem; margin-bottom: 8px;">Bem-vindo ao <span style="color: var(--vibrant-cyan);">ElectroLab AI</span></h1>
+    <p style="color: var(--text-muted); margin-bottom: 30px; font-size: 0.95rem;">Sua plataforma inteligente de engenharia, diagnóstico de placas e controle de estoque.</p>
+
+    <!-- PAINEL DE ATALHOS RÁPIDOS EXPANDIDO -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; text-align: left;">
+        
+        <!-- Meus Projetos -->
+        <a href="{% url 'project_list' %}" style="text-decoration: none;">
+            <div style="background: var(--deep-navy); padding: 24px 20px; border-radius: 16px; border: 1px solid rgba(0,255,255,0.1); transition: 0.3s;" onmouseover="this.style.borderColor='var(--vibrant-cyan)'" onmouseout="this.style.borderColor='rgba(0,255,255,0.1)'">
+                <div style="font-size: 30px; margin-bottom: 8px;">📁</div>
+                <h3 style="margin-bottom: 6px; font-size: 1.1rem;">Meus Projetos</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Gerencie seus equipamentos e históricos de análises.</p>
+            </div>
+        </a>
+
+        <a href="{% url 'scout_item_view' %}" title="Radar de Garimpo e Sucata">🛰️</a>
+
+        <!-- Nova Análise -->
+        <a href="{% url 'project_create' %}" style="text-decoration: none;">
+            <div style="background: var(--deep-navy); padding: 24px 20px; border-radius: 16px; border: 1px solid rgba(155,48,255,0.2); transition: 0.3s;" onmouseover="this.style.borderColor='var(--electric-purple)'" onmouseout="this.style.borderColor='rgba(155,48,255,0.2)'">
+                <div style="font-size: 30px; margin-bottom: 8px;">➕</div>
+                <h3 style="margin-bottom: 6px; font-size: 1.1rem;">Nova Análise</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Inicie um novo diagnóstico visual ou textual por IA.</p>
+            </div>
+        </a>
+
+        <!-- Varredura Inteligente (Scan) -->
+        <a href="{% url 'scan_inventory_view' %}" style="text-decoration: none;">
+            <div style="background: var(--deep-navy); padding: 24px 20px; border-radius: 16px; border: 1px solid rgba(0,255,255,0.2); transition: 0.3s;" onmouseover="this.style.borderColor='var(--vibrant-cyan)'" onmouseout="this.style.borderColor='rgba(0,255,255,0.2)'">
+                <div style="font-size: 30px; margin-bottom: 8px;">⚡</div>
+                <h3 style="margin-bottom: 6px; font-size: 1.1rem;">Varredura de Estoque</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Escaneie placas e salve componentes automaticamente.</p>
+            </div>
+        </a>
+
+        <!-- Banco de Peças -->
+        <a href="{% url 'inventory_list_view' %}" style="text-decoration: none;">
+            <div style="background: var(--deep-navy); padding: 24px 20px; border-radius: 16px; border: 1px solid rgba(155,48,255,0.2); transition: 0.3s;" onmouseover="this.style.borderColor='var(--electric-purple)'" onmouseout="this.style.borderColor='rgba(155,48,255,0.2)'">
+                <div style="font-size: 30px; margin-bottom: 8px;">📦</div>
+                <h3 style="margin-bottom: 6px; font-size: 1.1rem;">Banco de Peças</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Consulte seu inventário de componentes extraídos.</p>
+            </div>
+        </a>
+
+        <!-- Configurações -->
+        <a href="{% url 'config_view' %}" style="text-decoration: none;">
+            <div style="background: var(--deep-navy); padding: 24px 20px; border-radius: 16px; border: 1px solid rgba(0,255,255,0.1); transition: 0.3s;" onmouseover="this.style.borderColor='var(--vibrant-cyan)'" onmouseout="this.style.borderColor='rgba(0,255,255,0.1)'">
+                <div style="font-size: 30px; margin-bottom: 8px;">⚙️</div>
+                <h3 style="margin-bottom: 6px; font-size: 1.1rem;">Configurações</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem;">Personalize cores, temas e modo escuro.</p>
+            </div>
+        </a>
+
+    </div>
+</div>
+{% endblock %}

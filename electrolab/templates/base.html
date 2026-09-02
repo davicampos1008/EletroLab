@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}ElectroLab AI{% endblock %}</title>
+
+    <link rel="icon" type="image/jpeg" href="{% static 'logo.jfif' %}">
+    <link rel="apple-touch-icon" href="{% static 'logo.jfif' %}">
+
+    <style>
+        /* TEMA PADRÃO (Cyber Cyan & Electric Purple - Dark) */
+        :root {
+            --dark-slate: #121218;
+            --deep-navy: #1E1E2E;
+            --vibrant-cyan: #00FFFF;
+            --electric-purple: #9B30FF;
+            --text-main: #F8F8F8;
+            --text-muted: #8B8B9E;
+            --card-bg: #1E1E2E;
+        }
+
+        /* 6 TEMAS DISPONÍVEIS */
+        body.theme-cyan-purple { --vibrant-cyan: #00FFFF; --electric-purple: #9B30FF; }
+        body.theme-matrix-green { --vibrant-cyan: #00FF66; --electric-purple: #008833; }
+        body.theme-amber-tech { --vibrant-cyan: #FFB000; --electric-purple: #CC7700; }
+        body.theme-crimson-red { --vibrant-cyan: #FF3366; --electric-purple: #990033; }
+        body.theme-electric-blue { --vibrant-cyan: #3399FF; --electric-purple: #003399; }
+        body.theme-neon-yellow { --vibrant-cyan: #FFEE00; --electric-purple: #998800; }
+
+        /* MODO LIGHT (CLARO) */
+        body.light-mode {
+            --dark-slate: #F0F2F5;
+            --deep-navy: #FFFFFF;
+            --text-main: #1F2937;
+            --text-muted: #6B7280;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+        body {
+            background-color: var(--dark-slate);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .menu-toggle {
+            position: fixed; top: 15px; left: 15px; z-index: 200;
+            background: var(--deep-navy); border: 1px solid var(--vibrant-cyan);
+            color: var(--vibrant-cyan); font-size: 20px; padding: 8px 12px;
+            border-radius: 8px; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; box-shadow: 0 0 10px rgba(0,0,0,0.5); transition: 0.3s;
+        }
+        .menu-toggle:hover { background: var(--electric-purple); color: white; }
+
+        .sidebar {
+            position: fixed; top: 0; left: -80px; width: 70px; height: 100%;
+            background-color: var(--deep-navy); border-right: 1px solid rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; align-items: center; padding-top: 80px;
+            z-index: 150; box-shadow: 5px 0 20px rgba(0,0,0,0.6); transition: left 0.3s ease-in-out;
+        }
+        .sidebar.open { left: 0; }
+        .sidebar a {
+            color: var(--text-muted); text-decoration: none; margin-bottom: 25px;
+            font-size: 22px; transition: 0.3s; display: flex; justify-content: center;
+            align-items: center; width: 45px; height: 45px; border-radius: 12px;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            color: var(--vibrant-cyan); background: rgba(0, 255, 255, 0.1);
+            box-shadow: 0 0 15px var(--vibrant-cyan);
+        }
+
+        .sidebar-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.5); z-index: 140; display: none;
+        }
+        .sidebar-overlay.active { display: block; }
+
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; position: relative; width: 100%; }
+        .container { padding: 20px 30px 30px 60px; max-width: 1050px; margin: 0 auto; width: 100%; }
+
+        button, .btn-primary {
+            background: linear-gradient(135deg, var(--electric-purple) 0%, var(--vibrant-cyan) 100%);
+            color: #121218; border: none; border-radius: 12px; padding: 12px 24px;
+            font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;
+            text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
+        }
+        button:hover, .btn-primary:hover {
+            box-shadow: 0 4px 20px var(--vibrant-cyan); transform: translateY(-2px);
+        }
+
+        input, select, textarea {
+            width: 100%; padding: 15px; background: var(--deep-navy); color: var(--text-main);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; font-size: 16px; outline: none;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--vibrant-cyan); box-shadow: 0 0 15px var(--vibrant-cyan); }
+        label { font-size: 13px; color: var(--vibrant-cyan); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px;}
+
+        h1, h2, h3 { color: var(--text-main); font-weight: 700; }
+        a { color: var(--vibrant-cyan); text-decoration: none; transition: 0.3s; }
+        a:hover { text-shadow: 0 0 8px var(--vibrant-cyan); }
+    </style>
+
+    <script>
+        // APLICA AS PREFERÊNCIAS SALVAS ANTES DA PÁGINA RENDERIZAR (Evita piscar)
+        (function() {
+            const savedTheme = localStorage.getItem('electrolab_theme') || 'theme-cyan-purple';
+            const savedDarkMode = localStorage.getItem('electrolab_darkmode');
+            
+            document.body.classList.add(savedTheme);
+            if (savedDarkMode === 'false') {
+                document.body.classList.add('light-mode');
+            }
+        })();
+    </script>
+</head>
+<body>
+
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR DE NAVEGAÇÃO -->
+    <nav class="sidebar" id="sidebar">
+        <a href="{% url 'home_view' %}" title="Home / Atalhos">🏠</a>
+        <a href="{% url 'project_list' %}" title="Meus Projetos">📁</a>
+        <a href="{% url 'project_create' %}" title="Novo Projeto">➕</a>
+        <a href="{% url 'scan_inventory_view' %}" title="Varredura Inteligente de Estoque">⚡</a>
+        <a href="{% url 'inventory_list_view' %}" title="Banco de Peças e Estoque">📦</a>
+        <a href="{% url 'config_view' %}" title="Configurações">⚙️</a>
+        <a href="{% url 'scout_item_view' %}" title="Radar de Garimpo e Sucata">🛰️</a>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebar-overlay').classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
