@@ -14,16 +14,19 @@ def project_list(request):
 
 def scout_item_view(request):
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # Agora pegamos uma LISTA de imagens enviadas
         imagens = request.FILES.getlist('images')
-        
         if imagens:
-            # Comprime TODAS as fotos e cria uma lista de Base64
-            base64_lista = [comprimir_imagem_para_ia(img) for img in imagens]
+            base64_lista = []
+            for img in imagens:
+                # Comprime e redimensiona cada foto do celular para um tamanho leve e seguro
+                base64_encoded = comprimir_imagem_para_ia(img)
+                base64_lista.append(base64_encoded)
+                
             dados_garimpo = analisar_garimpo_sucata(base64_lista)
             return JsonResponse({'status': 'sucesso', 'dados': dados_garimpo})
             
         return JsonResponse({'status': 'erro', 'mensagem': 'Nenhuma imagem enviada'})
+    
     return render(request, 'inventory/scout.html')
 
 def project_create(request):
