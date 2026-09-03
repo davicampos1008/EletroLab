@@ -153,12 +153,22 @@
         btnScout.innerText = "🔍 Avaliando fotos com IA...";
         btnScout.disabled = true;
 
-        const formData = new FormData(scoutForm);
-        formData.delete('images');
-        selectedFiles.forEach(file => formData.append('images', file));
+        const formData = new FormData();
+        // Adiciona o CSRF Token obrigatório do Django
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        formData.append('csrfmiddlewaretoken', csrfToken);
+
+        // Anexa todas as fotos acumuladas na variável 'images' que o views.py espera
+        selectedFiles.forEach(file => {
+            formData.append('images', file);
+        });
 
         try {
-            const response = await fetch("", { method: 'POST', body: formData, headers: {'X-Requested-With': 'XMLHttpRequest'} });
+            const response = await fetch("", { 
+                method: 'POST', 
+                body: formData, 
+                headers: {'X-Requested-With': 'XMLHttpRequest'} 
+            });
             const data = await response.json();
             
             if(data.status === 'sucesso') {
