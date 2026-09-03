@@ -9,12 +9,13 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121218">
-    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}?v=3">
     
     <title>{% block title %}ElectroLab AI{% endblock %}</title>
 
-    <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
-    <link rel="apple-touch-icon" href="{% static 'logo.png' %}">
+    <link rel="icon" type="image/png" href="{% static 'logo.png' %}?v=3">
+    <link rel="apple-touch-icon" href="{% static 'logo.png' %}?v=3">
+    
     <style>
         /* TEMA PADRÃO (Cyber Cyan & Electric Purple - Dark) */
         :root {
@@ -115,56 +116,38 @@
         /* 📱 OTIMIZAÇÃO PARA CELULARES E TABLETS    */
         /* ========================================= */
         @media (max-width: 768px) {
-            .container { 
-                padding: 70px 15px 20px 15px !important; 
-            }
+            .container { padding: 70px 15px 20px 15px !important; }
             h1 { font-size: 1.5rem !important; }
             h2 { font-size: 1.2rem !important; }
-            .menu-toggle {
-                top: 10px;
-                left: 10px;
-                padding: 10px 14px;
-                font-size: 22px;
-            }
-            .msg-bubble { 
-                max-width: 95% !important; 
-                padding: 12px 15px !important;
-                font-size: 0.9rem !important;
-            }
-            div[style*="grid-template-columns"] {
-                grid-template-columns: 1fr !important;
-                gap: 15px !important;
-            }
-            img[style*="width: 300px"] {
-                width: 200px !important;
-                margin-top: 50px !important;
-            }
-            input, select, textarea, button, .btn-primary {
-                font-size: 16px !important; 
-                padding: 14px !important;
-            }
-            .sidebar {
-                width: 80px;
-            }
-            .sidebar.open {
-                box-shadow: 10px 0 30px rgba(0,0,0,0.8);
-            }
+            .menu-toggle { top: 10px; left: 10px; padding: 10px 14px; font-size: 22px; }
+            .msg-bubble { max-width: 95% !important; padding: 12px 15px !important; font-size: 0.9rem !important; }
+            div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; gap: 15px !important; }
+            img[style*="width: 300px"] { width: 200px !important; margin-top: 50px !important; }
+            input, select, textarea, button, .btn-primary { font-size: 16px !important; padding: 14px !important; }
+            .sidebar { width: 80px; }
+            .sidebar.open { box-shadow: 10px 0 30px rgba(0,0,0,0.8); }
         }
     </style>
 </head>
 <body>
     
-    <!-- SCRIPT DE TEMA (MOVIDO PARA DENTRO DO BODY PARA EVITAR ERROS) -->
+    <!-- SCRIPT DE TEMA -->
     <script>
         (function() {
             const savedTheme = localStorage.getItem('electrolab_theme') || 'theme-cyan-purple';
             const savedDarkMode = localStorage.getItem('electrolab_darkmode');
-            
             document.body.classList.add(savedTheme);
-            if (savedDarkMode === 'false') {
-                document.body.classList.add('light-mode');
-            }
+            if (savedDarkMode === 'false') { document.body.classList.add('light-mode'); }
         })();
+
+        // ATIVAÇÃO DO PWA E CARREGAMENTO INSTANTÂNEO
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js').then(reg => {
+                    console.log('App pronto para funcionar offline e abrir instantaneamente!');
+                }).catch(err => console.log('Falha no ServiceWorker', err));
+            });
+        }
     </script>
 
     <button class="menu-toggle" onclick="toggleSidebar()">☰</button>

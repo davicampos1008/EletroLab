@@ -1,98 +1,56 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
-from .models import InventoryItem
+from .models import InventoryItem, Project
+from chat.models import Conversation
 from services.inventory_service import analisar_pecas_para_estoque
-import base64
 from services.scout_service import analisar_garimpo_sucata
-
+import base64
+from PIL import Image
+import io
 
 def project_list(request):
     projects = Project.objects.all().order_by('-updated_at')
-
-    return render(request, 'projects/list.html', {
-        'projects': projects
-    })
+    return render(request, 'projects/list.html', {'projects': projects})
 
 def scout_item_view(request):
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         imagem = request.FILES.get('image')
         if imagem:
-            image_bytes = imagem.read()
-            base64_encoded = base64.b64encode(image_bytes).decode('utf-8')
+            base64_encoded = comprimir_imagem_para_ia(imagem)
             dados_garimpo = analisar_garimpo_sucata(base64_encoded)
             return JsonResponse({'status': 'sucesso', 'dados': dados_garimpo})
         return JsonResponse({'status': 'erro', 'mensagem': 'Nenhuma imagem enviada'})
-    
     return render(request, 'inventory/scout.html')
 
 def project_create(request):
-
     if request.method == 'POST':
-
         name = request.POST.get('name', '').strip()
         description = request.POST.get('description', '').strip()
-
         if name:
-
-            project = Project.objects.create(
-                name=name,
-                description=description
-            )
-
-            return redirect(
-                'project_detail',
-                project_id=project.id
-            )
-
+            project = Project.objects.create(name=name, description=description)
+            return redirect('project_detail', project_id=project.id)
     return render(request, 'projects/create.html')
 
-
 def project_detail(request, project_id):
-
-    project = get_object_or_404(
-        Project,
-        id=project_id
-    )
-
-    conversations = project.conversations.all().order_by(
-        '-updated_at'
-    )
-
+    project = get_object_or_404(Project, id=project_id)
+    conversations = project.conversations.all().order_by('-updated_at')
+    
     if request.method == 'POST':
-
         title = request.POST.get('title', '').strip()
-
         if title:
-
-            conversation = Conversation.objects.create(
-                project=project,
-                title=title
-            )
-
-            return redirect(
-                'conversation',
-                conversation_id=conversation.id
-            )
-
-    return render(
-        request,
-        'projects/detail.html',
-        {
-            'project': project,
-            'conversations': conversations
-        }
-    )
+            conversation = Conversation.objects.create(project=project, title=title)
+            return redirect('conversation', conversation_id=conversation.id)
+            
+    return render(request, 'projects/detail.html', {'project': project, 'conversations': conversations})
 
 def scan_inventory_view(request):
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         imagem = request.FILES.get('image')
         if imagem:
-            image_bytes = imagem.read()
-            base64_encoded = base64.b64encode(image_bytes).decode('utf-8')
+            base64_encoded = comprimir_imagem_para_ia(imagem)
             dados_pecas = analisar_pecas_para_estoque(base64_encoded)
             return JsonResponse({'status': 'sucesso', 'dados': dados_pecas})
         return JsonResponse({'status': 'erro', 'mensagem': 'Nenhuma imagem enviada'})
-    
     return render(request, 'inventory/scan.html')
 
 def inventory_list_view(request):
@@ -102,7 +60,6 @@ def inventory_list_view(request):
 def save_inventory_batch(request):
     if request.method == 'POST':
         origem = request.POST.get('equipamento_origem', 'Desconhecido')
-        
         key_list = list(request.POST.keys())
         for key in key_list:
             if key.startswith('peca_nome_'):
@@ -120,3 +77,12 @@ def save_inventory_batch(request):
                     )
         return redirect('inventory_list_view')
     return redirect('scan_inventory_view')
+
+def comprimir_imagem_para_ia(imagem_upload):
+    img = Image.open(imagem_upload)
+    if img.mode != 'RGB':
+        img = img.convert('RGB')
+    img.thumbnail((800, 800))
+    buffer = io.BytesIO()
+    img.save(buffer, format="JPEG", quality=75)
+    return base64.b64encode(buffer.getvalue()).decode('utf-8')

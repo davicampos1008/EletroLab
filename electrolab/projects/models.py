@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class Project(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -10,14 +9,13 @@ class Project(models.Model):
     def __str__(self):
         return self.name
 
-
 class InventoryItem(models.Model):
     """Armazena as peças e componentes retirados ou salvos no estoque."""
     nome = models.CharField(max_length=255)
     descricao = models.TextField(blank=True, null=True)
     quantidade = models.IntegerField(default=1)
     foto = models.ImageField(upload_to='inventory_parts/', blank=True, null=True)
-    origem_equipamento = models.CharField(max_length=255, blank=True, null=True) # Ex: Retirado da Impressora HP
+    origem_equipamento = models.CharField(max_length=255, blank=True, null=True)
     criado_em = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -27,7 +25,7 @@ class InventoryItem(models.Model):
 class UserTool(models.Model):
     """Controla quais ferramentas e equipamentos o usuário POSSUI ou NÃO POSSUI."""
     nome_ferramenta = models.CharField(max_length=255, unique=True)
-    disponivel = models.BooleanField(default=True) # True se tem, False se não tem (ex: Multímetro, Estação de Solda)
+    disponivel = models.BooleanField(default=True)
     atualizado_em = models.DateTimeField(auto_now=True)
 
     def __str__(self):
