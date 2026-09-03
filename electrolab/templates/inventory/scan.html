@@ -3,9 +3,8 @@
 {% block title %}Varredura de Estoque - ElectroLab AI{% endblock %}
 
 {% block content %}
-<div style="padding: 20px 30px 0 50px;">
-    <img src="{% static 'logo.jfif' %}" alt="ElectroLab AI" style="height: 50px; border-radius: 8px;">
-</div>
+<!-- PUXA A LOGO GLOBAL -->
+{% include 'includes/logo.html' %}
 
 <div class="container" style="max-width: 800px; margin-top: 15px;">
     <div style="background: var(--deep-navy); padding: 35px; border-radius: 16px; border: 1px solid rgba(0,255,255,0.1);">
@@ -18,7 +17,6 @@
             {% csrf_token %}
             <div style="margin-bottom: 20px;">
                 <label>Capturar Placa / Componente</label>
-                <!-- capture="environment" abre a câmera traseira do celular na hora -->
                 <input type="file" name="image" accept="image/*" capture="environment" required style="padding: 10px; cursor: pointer;">
             </div>
             <button type="submit" id="btnScan" style="width: 100%; padding: 14px;">⚡ Analisar e Extrair Peças</button>

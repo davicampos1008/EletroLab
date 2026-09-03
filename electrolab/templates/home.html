@@ -63,18 +63,16 @@
 </style>
 
 <div style="display: flex; justify-content: center; margin-top: 30px; margin-bottom: 20px;">
-    <!-- Solução usando data-fallback para evitar conflito de aspas no VS Code e no Django -->
-    <img src="{% static 'logo.png' %}" data-fallback="{% static 'logo.jfif' %}" onerror="this.src=this.getAttribute('data-fallback')" alt="ElectroLab AI" class="home-logo">
+    <!-- CORRIGIDO: Apontando exclusivamente para a logo.png -->
+    <img src="{% static 'logo.png' %}" alt="ElectroLab AI" class="home-logo">
 </div>
 
 <div class="container" style="max-width: 900px; text-align: center; margin-top: 10px;">
     <h1 style="font-size: 1.8rem; margin-bottom: 8px;">Bem-vindo ao <span style="color: var(--vibrant-cyan);">ElectroLab AI</span></h1>
     <p style="color: var(--text-muted); margin-bottom: 40px; font-size: 0.95rem;">Sua plataforma inteligente de engenharia, diagnóstico de placas e controle de estoque.</p>
 
-    <!-- GRID CORRIGIDO -->
     <div class="grid-atalhos">
         
-        <!-- Meus Projetos -->
         <a href="{% url 'project_list' %}" style="text-decoration: none;">
             <div class="card-atalho" style="border: 1px solid rgba(0,255,255,0.1);" onmouseover="this.style.borderColor='var(--vibrant-cyan)'" onmouseout="this.style.borderColor='rgba(0,255,255,0.1)'">
                 <div class="card-icon">📁</div>
@@ -83,7 +81,6 @@
             </div>
         </a>
 
-        <!-- Radar de Garimpo (ARRUMADO) -->
         <a href="{% url 'scout_item_view' %}" style="text-decoration: none;">
             <div class="card-atalho" style="border: 1px solid rgba(0,255,102,0.2);" onmouseover="this.style.borderColor='#00FF66'" onmouseout="this.style.borderColor='rgba(0,255,102,0.2)'">
                 <div class="card-icon">🛰️</div>
@@ -92,7 +89,6 @@
             </div>
         </a>
 
-        <!-- Nova Análise -->
         <a href="{% url 'project_create' %}" style="text-decoration: none;">
             <div class="card-atalho" style="border: 1px solid rgba(155,48,255,0.2);" onmouseover="this.style.borderColor='var(--electric-purple)'" onmouseout="this.style.borderColor='rgba(155,48,255,0.2)'">
                 <div class="card-icon">➕</div>
@@ -101,7 +97,6 @@
             </div>
         </a>
 
-        <!-- Varredura Inteligente -->
         <a href="{% url 'scan_inventory_view' %}" style="text-decoration: none;">
             <div class="card-atalho" style="border: 1px solid rgba(0,255,255,0.2);" onmouseover="this.style.borderColor='var(--vibrant-cyan)'" onmouseout="this.style.borderColor='rgba(0,255,255,0.2)'">
                 <div class="card-icon">⚡</div>
@@ -110,7 +105,6 @@
             </div>
         </a>
 
-        <!-- Banco de Peças -->
         <a href="{% url 'inventory_list_view' %}" style="text-decoration: none;">
             <div class="card-atalho" style="border: 1px solid rgba(155,48,255,0.2);" onmouseover="this.style.borderColor='var(--electric-purple)'" onmouseout="this.style.borderColor='rgba(155,48,255,0.2)'">
                 <div class="card-icon">📦</div>
@@ -119,7 +113,6 @@
             </div>
         </a>
 
-        <!-- Configurações -->
         <a href="{% url 'config_view' %}" style="text-decoration: none;">
             <div class="card-atalho" style="border: 1px solid rgba(255,255,255,0.1);" onmouseover="this.style.borderColor='var(--vibrant-cyan)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'">
                 <div class="card-icon">⚙️</div>

@@ -3,32 +3,38 @@
 {% block title %}Garimpo Inteligente - ElectroLab AI{% endblock %}
 
 {% block content %}
-<div style="padding: 20px 30px 0 50px;">
-    <img src="{% static 'logo.png' %}" alt="ElectroLab AI" style="height: 50px; border-radius: 8px;">
-</div>
+<!-- PUXA A LOGO GLOBAL -->
+{% include 'includes/logo.html' %}
 
 <div class="container" style="max-width: 800px; margin-top: 15px;">
     <div style="background: var(--deep-navy); padding: 35px; border-radius: 16px; border: 1px solid rgba(0,255,255,0.1);">
         
         <h1 style="margin-top: 0; margin-bottom: 10px;">🔍 Radar de Garimpo & Sucata</h1>
-        <p style="color: var(--text-muted); margin-bottom: 25px;">Achou algo na rua ou na oficina? Tire uma foto com a câmera para a IA avaliar se vale a pena resgatar e quais peças vai lucrar.</p>
+        <p style="color: var(--text-muted); margin-bottom: 25px;">Tire fotos ou selecione da galeria para a IA avaliar se vale a pena resgatar.</p>
 
-        <!-- FORMULÁRIO COM CÂMERA -->
+        <!-- FORMULÁRIO COM CÂMERA ESTILO WHATSAPP -->
         <form method="post" enctype="multipart/form-data" id="scoutForm">
             {% csrf_token %}
-            <div style="margin-bottom: 20px;">
-                <label>Foto do Item Encontrado</label>
-                <input type="file" name="image" accept="image/*" capture="environment" required style="padding: 10px; cursor: pointer;">
+            
+            <div style="margin-bottom: 20px; text-align: center;">
+                <label for="cameraInput" style="display: block; padding: 40px 20px; border: 2px dashed var(--vibrant-cyan); border-radius: 16px; background: rgba(0,255,255,0.05); cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='rgba(0,255,255,0.1)'" onmouseout="this.style.background='rgba(0,255,255,0.05)'">
+                    <div style="font-size: 48px; margin-bottom: 10px;">📸</div>
+                    <span style="color: var(--vibrant-cyan); font-weight: bold; font-size: 1.1rem;">Abrir Câmera ou Galeria</span>
+                    <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 8px;">Adicione uma ou várias fotos do equipamento</div>
+                </label>
+                <input type="file" id="cameraInput" accept="image/*" multiple style="display: none;">
+                
+                <!-- Aqui aparecerão as miniaturas das fotos acumuladas -->
+                <div id="previewContainer" style="display: flex; gap: 15px; overflow-x: auto; margin-top: 20px; padding-bottom: 10px; justify-content: center;"></div>
             </div>
-            <button type="submit" id="btnScout" style="width: 100%; padding: 14px; background: linear-gradient(135deg, var(--vibrant-cyan) 0%, #0088AA 100%); color: #121218;">
+
+            <button type="submit" id="btnScout" style="width: 100%; padding: 14px; background: linear-gradient(135deg, var(--vibrant-cyan) 0%, #0088AA 100%); color: #121218; display: none; font-size: 16px;">
                 🚀 Analisar Viabilidade do Item
             </button>
         </form>
 
         <!-- PAINEL DE RESULTADO E VEREDITO -->
         <div id="resultadoGarimpo" style="margin-top: 30px; display: none;">
-            
-            <!-- CAIXA DE VEREDITO -->
             <div id="veredictoBox" style="padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: center; border: 2px solid;">
                 <h2 id="txtVeredicto" style="margin: 0 0 5px 0; font-size: 1.8rem;"></h2>
                 <p id="txtMotivo" style="margin: 0; font-size: 0.95rem;"></p>
@@ -47,13 +53,12 @@
                 <input type="hidden" name="equipamento_origem" id="scoutOrigem">
                 <div id="scoutPecasContainer" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px;"></div>
 
-                <!-- BOTÕES DE AÇÃO: PEGUEI / NÃO PEGUEI -->
                 <div style="display: flex; gap: 15px;">
                     <button type="submit" id="btnPeguei" style="flex: 1; padding: 15px; background: linear-gradient(135deg, #00FF66 0%, #008833 100%); color: #121218; font-size: 16px;">
-                        ✅ PEGUEI (Adicionar ao Estoque)
+                        ✅ PEGUEI
                     </button>
                     <a href="{% url 'home_view' %}" style="flex: 1; text-align: center; background: #333344; color: white; padding: 15px; border-radius: 12px; font-weight: bold; text-decoration: none; display: flex; align-items: center; justify-content: center;">
-                        ❌ NÃO PEGUEI (Descartar)
+                        ❌ DESCARTAR
                     </a>
                 </div>
             </form>
@@ -62,14 +67,80 @@
 </div>
 
 <script>
+    // ACUMULADOR DE FOTOS ESTILO WHATSAPP
+    let selectedFiles = [];
+    const cameraInput = document.getElementById('cameraInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const btnScout = document.getElementById('btnScout');
+
+    cameraInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            Array.from(this.files).forEach(file => selectedFiles.push(file));
+        }
+        updatePreview();
+        this.value = ''; // Reseta o input para permitir selecionar a mesma foto novamente se quiser
+    });
+
+    function updatePreview() {
+        previewContainer.innerHTML = '';
+        if (selectedFiles.length > 0) {
+            btnScout.style.display = 'block';
+            selectedFiles.forEach((file, index) => {
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'relative';
+                wrapper.style.display = 'inline-block';
+                
+                const img = document.createElement('img');
+                img.src = URL.createObjectURL(file);
+                img.style.height = '90px';
+                img.style.width = '90px';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '12px';
+                img.style.border = '2px solid var(--vibrant-cyan)';
+                
+                // Botão de remover miniatura
+                const removeBtn = document.createElement('span');
+                removeBtn.innerHTML = '✖';
+                removeBtn.style.position = 'absolute';
+                removeBtn.style.top = '-8px';
+                removeBtn.style.right = '-8px';
+                removeBtn.style.background = '#FF4444';
+                removeBtn.style.color = 'white';
+                removeBtn.style.borderRadius = '50%';
+                removeBtn.style.width = '24px';
+                removeBtn.style.height = '24px';
+                removeBtn.style.display = 'flex';
+                removeBtn.style.alignItems = 'center';
+                removeBtn.style.justifyContent = 'center';
+                removeBtn.style.fontSize = '12px';
+                removeBtn.style.cursor = 'pointer';
+                removeBtn.style.boxShadow = '0 2px 5px rgba(0,0,0,0.5)';
+                
+                removeBtn.onclick = function() {
+                    selectedFiles.splice(index, 1);
+                    updatePreview();
+                };
+
+                wrapper.appendChild(img);
+                wrapper.appendChild(removeBtn);
+                previewContainer.appendChild(wrapper);
+            });
+        } else {
+            btnScout.style.display = 'none';
+        }
+    }
+
     const scoutForm = document.getElementById('scoutForm');
     scoutForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        const btn = document.getElementById('btnScout');
-        btn.innerText = "🔍 Avaliando item e peças...";
-        btn.disabled = true;
+        btnScout.innerText = "🔍 Avaliando fotos com IA...";
+        btnScout.disabled = true;
 
+        // Injeta as fotos acumuladas no envio
         const formData = new FormData(scoutForm);
+        formData.delete('images');
+        selectedFiles.forEach(file => formData.append('images', file));
+
         try {
             const response = await fetch("", { method: 'POST', body: formData, headers: {'X-Requested-With': 'XMLHttpRequest'} });
             const data = await response.json();
@@ -125,8 +196,8 @@
         } catch (err) {
             alert("Erro de conexão com o servidor.");
         } finally {
-            btn.innerText = "🚀 Analisar Viabilidade do Item";
-            btn.disabled = false;
+            btnScout.innerText = "🚀 Analisar Viabilidade do Item";
+            btnScout.disabled = false;
         }
     });
 </script>

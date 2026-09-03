@@ -34,33 +34,22 @@ def obter_modelos_visao_gratuitos():
     # Fallback super seguro se a busca falhar
     return ["google/gemini-2.0-flash-lite-preview-02-05:free", "google/gemini-2.0-pro-exp-02-05:free"]
 
-def analisar_garimpo_sucata(base64_image):
+def analisar_garimpo_sucata(base64_images_list): # Agora recebe a lista
     api_key = os.environ.get("OPENROUTER_API_KEY")
-    prompt = """Você é um especialista em engenharia de campo, reciclagem eletrônica e viabilidade de consertos.
-    Analise a foto do item/equipamento encontrado e retorne APENAS um JSON válido no formato exato abaixo, sem marcações markdown extras:
-    {
-      "nome_item": "Nome identificado do item",
-      "o_que_e": "Explicação clara do que é o equipamento e sua função original",
-      "possivel_consertar": "Sim ou Não e uma breve justificativa de viabilidade",
-      "veredito": "DEVE PEGAR" ou "NÃO DEVE PEGAR",
-      "motivo_veredito": "Por que vale ou não a pena resgatar este item",
-      "pecas_sucata": [
-        {
-          "nome": "Nome do componente extraível",
-          "quantidade_estimada": 1,
-          "utilidade": "Para que serve"
-        }
-      ]
-    }"""
-
+    prompt = """Você é um especialista em engenharia de campo... (mantenha seu prompt igual)"""
+    
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
-    # Agora o Garimpo usa a lista dinâmica e atualizada!
     modelos_gratuitos = obter_modelos_visao_gratuitos()
     ultimo_erro = "Erro desconhecido."
+    
+    # Prepara o conteúdo misturando o texto e TODAS as imagens
+    conteudo_ia = [{"type": "text", "text": prompt}]
+    for img_b64 in base64_images_list:
+        conteudo_ia.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img_b64}"}})
 
     for modelo in modelos_gratuitos:
         payload = {
@@ -68,10 +57,7 @@ def analisar_garimpo_sucata(base64_image):
             "messages": [
                 {
                     "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt},
-                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
-                    ]
+                    "content": conteudo_ia # Envia a lista montada aqui!
                 }
             ],
             "max_tokens": 1500

@@ -2,14 +2,10 @@
 {% block title %}{{ project.name }} - ElectroLab AI{% endblock %}
 {% block content %}
 
-<!-- LOGO NO CANTO SUPERIOR -->
-<div class="logo-container">
-    <div class="logo-icon" style="font-size: 24px;">🧠</div>
-    <div class="logo-text" style="font-size: 16px;">ELECTROLAB <span>AI</span></div>
-</div>
+<!-- PUXA A LOGO GLOBAL (Substituiu o antigo texto de Emoji) -->
+{% include 'includes/logo.html' %}
 
 <div class="container">
-    
     <!-- CABEÇALHO DO PROJETO -->
     <div style="background: var(--deep-navy); padding: 30px; border-radius: 16px; margin-bottom: 30px; border-left: 4px solid var(--electric-purple); position: relative; overflow: hidden;">
         <div style="position: absolute; right: 0; bottom: 0; font-size: 150px; opacity: 0.03; line-height: 0;">⚡</div>
@@ -45,6 +41,5 @@
             <button type="submit" style="white-space: nowrap;">Iniciar Motor de IA</button>
         </form>
     </div>
-
 </div>
 {% endblock %}

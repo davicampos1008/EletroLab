@@ -3,13 +3,8 @@
 {% block title %} {{ conversation.title }} - ElectroLab AI {% endblock %}
 
 {% block content %}
-<!-- NOVA LOGO NO TOPO DO CHAT -->
-<div style="padding: 15px 20px 5px 20px;">
-    <img src="{% static 'logo.jfif' %}" alt="ElectroLab AI" style="
-        height: 45px; 
-        border-radius: 8px;
-    ">
-</div>
+<!-- PUXA A LOGO GLOBAL -->
+{% include 'includes/logo.html' %}
 
 <!-- CABEÇALHO DO CHAT -->
 <div style="padding: 0 20px 15px 20px; border-bottom: 1px solid rgba(0,255,255,0.1);">
@@ -51,7 +46,7 @@
     {% endfor %}
 </div>
 
-<!-- ÁREA DE INPUT -->
+<!-- ÁREA DE INPUT COM MEMÓRIA DE FOTOS -->
 <form method="post" enctype="multipart/form-data" class="input-form">
     {% csrf_token %}
     <div id="selected-images" class="preview-area"></div>
@@ -59,7 +54,7 @@
         <label for="image-upload" class="btn-upload">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
         </label>
-        <input id="image-upload" type="file" name="images" accept="image/*" multiple style="display: none;">
+        <input id="image-upload" type="file" accept="image/*" multiple style="display: none;">
         <textarea name="content" rows="1" placeholder="Comando para a IA (ex: Diagnóstico)..." class="text-input"></textarea>
         <button type="submit" class="btn-send">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
@@ -69,25 +64,14 @@
 
 <style>
     /* Estilos específicos do CHAT */
-    .chat-container {
-        flex: 1; overflow-y: auto; padding: 20px;
-        background: radial-gradient(circle at center, var(--deep-navy) 0%, var(--dark-slate) 100%);
-    }
+    .chat-container { flex: 1; overflow-y: auto; padding: 20px; background: radial-gradient(circle at center, var(--deep-navy) 0%, var(--dark-slate) 100%); }
     .msg-row { display: flex; margin-bottom: 20px; }
     .user-row { justify-content: flex-end; }
     .ai-row { justify-content: flex-start; }
     .msg-bubble { padding: 14px 18px; max-width: 80%; line-height: 1.5; font-size: 0.95rem; }
     
-    .msg-user {
-        background: linear-gradient(135deg, var(--electric-purple) 0%, #6A1BB0 100%);
-        color: #FFFFFF; border-radius: 16px 16px 4px 16px;
-        box-shadow: 0 4px 15px rgba(155, 48, 255, 0.25);
-    }
-    .msg-ai {
-        background: rgba(42, 42, 60, 0.8); color: #E0E0E0;
-        border-radius: 16px 16px 16px 4px; border-left: 3px solid var(--vibrant-cyan);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px);
-    }
+    .msg-user { background: linear-gradient(135deg, var(--electric-purple) 0%, #6A1BB0 100%); color: #FFFFFF; border-radius: 16px 16px 4px 16px; box-shadow: 0 4px 15px rgba(155, 48, 255, 0.25); }
+    .msg-ai { background: rgba(42, 42, 60, 0.8); color: #E0E0E0; border-radius: 16px 16px 16px 4px; border-left: 3px solid var(--vibrant-cyan); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px); }
     .msg-ai h3, .msg-ai h4 { color: var(--vibrant-cyan); margin-top: 0; margin-bottom: 10px; }
     .msg-ai ul { padding-left: 20px; }
     
@@ -109,8 +93,7 @@
     .btn-send { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: var(--electric-purple); color: white; border: none; border-radius: 12px; cursor: pointer; transition: 0.3s; }
     .btn-send:hover { background: #7A1DD0; box-shadow: 0 0 15px rgba(155, 48, 255, 0.4); }
     
-    .preview-area { display: flex; gap: 8px; margin-bottom: 10px; overflow-x: auto; }
-    .preview-area img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--vibrant-cyan); }
+    .preview-area { display: flex; gap: 12px; margin-bottom: 10px; overflow-x: auto; }
     
     .jumping-dots { display: inline-flex; margin-left: 8px; }
     .jumping-dots span { animation: jump 1.4s infinite both; height: 5px; width: 5px; background: var(--vibrant-cyan); border-radius: 50%; margin: 0 2px; }
@@ -121,6 +104,8 @@
 </style>
 
 <script>
+    // ACUMULADOR DE FOTOS ESTILO WHATSAPP PARA O CHAT
+    let selectedChatImages = [];
     const input = document.getElementById('image-upload');
     const preview = document.getElementById('selected-images');
     const form = document.querySelector('.input-form');
@@ -133,13 +118,54 @@
     });
 
     input.addEventListener('change', function () {
+        if (this.files.length > 0) {
+            Array.from(this.files).forEach(file => selectedChatImages.push(file));
+        }
+        updateChatPreview();
+        this.value = ''; 
+    });
+
+    function updateChatPreview() {
         preview.innerHTML = '';
-        Array.from(this.files).forEach(file => {
+        selectedChatImages.forEach((file, index) => {
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'relative';
+            wrapper.style.display = 'inline-block';
+            
             const img = document.createElement('img');
             img.src = URL.createObjectURL(file);
-            preview.appendChild(img);
+            img.style.width = '60px';
+            img.style.height = '60px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '8px';
+            img.style.border = '1px solid var(--vibrant-cyan)';
+            
+            const removeBtn = document.createElement('span');
+            removeBtn.innerHTML = '✖';
+            removeBtn.style.position = 'absolute';
+            removeBtn.style.top = '-5px';
+            removeBtn.style.right = '-5px';
+            removeBtn.style.background = '#FF4444';
+            removeBtn.style.color = 'white';
+            removeBtn.style.borderRadius = '50%';
+            removeBtn.style.width = '18px';
+            removeBtn.style.height = '18px';
+            removeBtn.style.display = 'flex';
+            removeBtn.style.alignItems = 'center';
+            removeBtn.style.justifyContent = 'center';
+            removeBtn.style.fontSize = '10px';
+            removeBtn.style.cursor = 'pointer';
+            
+            removeBtn.onclick = function() {
+                selectedChatImages.splice(index, 1);
+                updateChatPreview();
+            };
+
+            wrapper.appendChild(img);
+            wrapper.appendChild(removeBtn);
+            preview.appendChild(wrapper);
         });
-    });
+    }
 
     function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; }
     scrollToBottom();
@@ -148,17 +174,31 @@
         e.preventDefault();
         const formData = new FormData(form);
         const textContent = formData.get('content');
-        const hasImage = input.files.length > 0;
+        const hasImage = selectedChatImages.length > 0;
 
         if (!textContent && !hasImage) return;
 
+        // Injeta as imagens acumuladas
+        formData.delete('images');
+        selectedChatImages.forEach(file => formData.append('images', file));
+
         let userHtml = `<div class="msg-row user-row"><div class="msg-bubble msg-user">`;
         if (textContent) userHtml += `<div>${textContent.replace(/\n/g, '<br>')}</div>`;
-        if (hasImage) userHtml += `<div class="msg-images"><img src="${URL.createObjectURL(input.files[0])}"></div>`;
+        if (hasImage) {
+            userHtml += `<div class="msg-images">`;
+            selectedChatImages.forEach(file => {
+                userHtml += `<img src="${URL.createObjectURL(file)}">`;
+            });
+            userHtml += `</div>`;
+        }
         userHtml += `</div></div>`;
         
         chatMessages.insertAdjacentHTML('beforeend', userHtml);
-        form.reset(); preview.innerHTML = ''; textarea.style.height = '48px'; scrollToBottom();
+        form.reset(); 
+        selectedChatImages = []; // Limpa o acumulador
+        updateChatPreview(); 
+        textarea.style.height = '48px'; 
+        scrollToBottom();
 
         const thinkingId = 'thinking-' + Date.now();
         const thinkingHtml = `

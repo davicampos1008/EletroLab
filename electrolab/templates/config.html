@@ -3,9 +3,8 @@
 {% block title %}Configurações - ElectroLab AI{% endblock %}
 
 {% block content %}
-<div style="padding: 20px 30px 0 50px;">
-    <img src="{% static 'logo.jfif' %}" alt="ElectroLab AI" style="height: 50px; border-radius: 8px;">
-</div>
+<!-- PUXA A LOGO GLOBAL -->
+{% include 'includes/logo.html' %}
 
 <div class="container" style="max-width: 650px; margin-top: 10px;">
     <div style="background: var(--deep-navy); padding: 35px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
@@ -47,7 +46,6 @@
 </div>
 
 <script>
-    // CARREGA OS ESTADOS ATUAIS NOS INPUTS AO ABRIR A TELA
     window.addEventListener('DOMContentLoaded', () => {
         const isLight = document.body.classList.contains('light-mode');
         document.getElementById('darkModeToggle').checked = !isLight;
@@ -56,7 +54,6 @@
         document.getElementById('themeSelector').value = currentTheme;
     });
 
-    // FUNÇÃO DE ALTERAR DARK/LIGHT EM TEMPO REAL
     function updateDarkMode(checkbox) {
         if (checkbox.checked) {
             document.body.classList.remove('light-mode');
@@ -67,11 +64,8 @@
         }
     }
 
-    // FUNÇÃO DE TROCAR OS 6 TEMAS EM TEMPO REAL
     function updateTheme(themeName) {
-        // Remove classes de temas anteriores
         document.body.className = document.body.className.replace(/theme-\S+/g, '');
-        // Adiciona o novo tema
         document.body.classList.add(themeName);
         localStorage.setItem('electrolab_theme', themeName);
     }

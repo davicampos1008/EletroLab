@@ -4,9 +4,9 @@
 {% block title %}Novo Projeto - ElectroLab AI{% endblock %}
 
 {% block content %}
-<!-- LOGO NO CANTO SUPERIOR -->
+<!-- LOGO NO CANTO SUPERIOR (Com sombra personalizada) -->
 <div style="padding: 20px 30px 0 30px;">
-    <img src="{% static 'logo.jfif' %}" alt="ElectroLab AI" style="
+    <img src="{% static 'logo.png' %}" alt="ElectroLab AI" style="
         height: 60px; 
         border-radius: 10px;
         box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
@@ -14,31 +14,24 @@
 </div>
 
 <div class="container" style="max-width: 600px; margin-top: 20px;">
-    
     <div style="background: var(--deep-navy); padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(0,255,255,0.1);">
-        
         <h1 style="margin-top: 0; margin-bottom: 30px; text-align: center; color: var(--text-main);">
             Catalogar Equipamento
         </h1>
-
         <form method="post">
             {% csrf_token %}
-
             <div style="margin-bottom: 25px;">
                 <label>Nome do Equipamento / Projeto</label>
                 <input type="text" name="name" placeholder="Ex.: Placa Mãe ASUS ROG / Xbox Series S" required>
             </div>
-
             <div style="margin-bottom: 30px;">
                 <label>Descrição ou Sintomas (Opcional)</label>
                 <textarea name="description" rows="4" placeholder="Ex.: Equipamento não liga. Desejo analisar os componentes da placa para encontrar o curto."></textarea>
             </div>
-
             <button type="submit" style="width: 100%; padding: 16px; font-size: 16px; letter-spacing: 1px;">
                 Registrar no Sistema
             </button>
         </form>
-
     </div>
 </div>
 {% endblock %}
