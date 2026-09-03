@@ -37,7 +37,7 @@
                 <div id="previewContainer" style="display: flex; gap: 15px; overflow-x: auto; margin-top: 15px; padding-bottom: 10px; justify-content: center;"></div>
             </div>
 
-            <button type="submit" id="btnScout" style="width: 100%; padding: 14px; background: linear-gradient(135deg, var(--vibrant-cyan) 0%, #0088AA 100%); color: #121218; display: none; font-size: 16px;">
+            <button type="submit" id="btnScout" style="width: 100%; padding: 14px; background: linear-gradient(135deg, var(--vibrant-cyan) 0%, #0088AA 100%); color: #121218; display: none; font-size: 16px; align-items: center; justify-content: center; gap: 5px;">
                 🚀 Analisar Viabilidade do Item
             </button>
         </form>
@@ -75,6 +75,16 @@
     </div>
 </div>
 
+<!-- Estilo CSS dos pontinhos saltitantes idêntico ao do chat -->
+<style>
+    .jumping-dots { display: inline-flex; margin-left: 4px; vertical-align: middle; }
+    .jumping-dots span { animation: jump 1.4s infinite both; height: 5px; width: 5px; background: #121218; border-radius: 50%; margin: 0 2px; }
+    .jumping-dots span:nth-child(1) { animation-delay: 0.2s; }
+    .jumping-dots span:nth-child(2) { animation-delay: 0.4s; }
+    .jumping-dots span:nth-child(3) { animation-delay: 0.6s; }
+    @keyframes jump { 0%, 100% { opacity: 0.3; transform: translateY(0); } 20% { opacity: 1; transform: translateY(-4px); } }
+</style>
+
 <script>
     let selectedFiles = [];
     const cameraDirectInput = document.getElementById('cameraDirectInput');
@@ -102,7 +112,7 @@
     function updatePreview() {
         previewContainer.innerHTML = '';
         if (selectedFiles.length > 0) {
-            btnScout.style.display = 'block';
+            btnScout.style.display = 'flex';
             selectedFiles.forEach((file, index) => {
                 const wrapper = document.createElement('div');
                 wrapper.style.position = 'relative';
@@ -150,15 +160,15 @@
     const scoutForm = document.getElementById('scoutForm');
     scoutForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        btnScout.innerText = "🔍 Avaliando fotos com IA...";
+        
+        // Ativa a animação dos pontinhos dentro do botão
+        btnScout.innerHTML = `🔍 Avaliando fotos<div class="jumping-dots"><span></span><span></span><span></span></div>`;
         btnScout.disabled = true;
 
         const formData = new FormData();
-        // Adiciona o CSRF Token obrigatório do Django
         const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         formData.append('csrfmiddlewaretoken', csrfToken);
 
-        // Anexa todas as fotos acumuladas na variável 'images' que o views.py espera
         selectedFiles.forEach(file => {
             formData.append('images', file);
         });
@@ -222,7 +232,7 @@
         } catch (err) {
             alert("Erro de conexão com o servidor.");
         } finally {
-            btnScout.innerText = "🚀 Analisar Viabilidade do Item";
+            btnScout.innerHTML = "🚀 Analisar Viabilidade do Item";
             btnScout.disabled = false;
         }
     });
