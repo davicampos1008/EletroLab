@@ -46,7 +46,7 @@
     {% endfor %}
 </div>
 
-<!-- ÁREA DE INPUT COM MEMÓRIA DE FOTOS -->
+<!-- ÁREA DE INPUT OTIMIZADA PARA ANDROID -->
 <form method="post" enctype="multipart/form-data" class="input-form">
     {% csrf_token %}
     <div id="selected-images" class="preview-area"></div>
@@ -63,8 +63,8 @@
 </form>
 
 <style>
-    /* Estilos específicos do CHAT */
-    .chat-container { flex: 1; overflow-y: auto; padding: 20px; background: radial-gradient(circle at center, var(--deep-navy) 0%, var(--dark-slate) 100%); }
+    /* Estilos específicos do CHAT otimizados para mobile/Android */
+    .chat-container { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 40px; background: radial-gradient(circle at center, var(--deep-navy) 0%, var(--dark-slate) 100%); }
     .msg-row { display: flex; margin-bottom: 20px; }
     .user-row { justify-content: flex-end; }
     .ai-row { justify-content: flex-start; }
@@ -82,18 +82,27 @@
     .brain-icon { font-size: 3rem; margin-bottom: 10px; filter: drop-shadow(0 0 10px var(--vibrant-cyan)); }
     .empty-state h3 { color: var(--vibrant-cyan); margin: 0; }
     
-    .input-form { background: var(--deep-navy); padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.05); }
+    /* Barra inferior ajustada para Android para evitar cortes */
+    .input-form { 
+        background: var(--deep-navy); 
+        padding: 12px 15px; 
+        border-top: 1px solid rgba(255,255,255,0.05); 
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
     .input-wrapper { display: flex; gap: 10px; align-items: flex-end; }
-    .btn-upload { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: rgba(30,30,46,0.8); color: var(--vibrant-cyan); border-radius: 12px; cursor: pointer; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1); }
+    .btn-upload { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: rgba(30,30,46,0.8); color: var(--vibrant-cyan); border-radius: 12px; cursor: pointer; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
     .btn-upload:hover { background: var(--electric-purple); color: white; }
     
-    .text-input { flex: 1; min-height: 48px; padding: 12px 15px; background: var(--dark-slate); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; resize: none; outline: none; font-family: inherit; }
+    .text-input { flex: 1; min-height: 44px; max-height: 120px; padding: 10px 14px; background: var(--dark-slate); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; resize: none; outline: none; font-family: inherit; font-size: 16px; }
     .text-input:focus { border-color: var(--electric-purple); }
     
-    .btn-send { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: var(--electric-purple); color: white; border: none; border-radius: 12px; cursor: pointer; transition: 0.3s; }
+    .btn-send { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: var(--electric-purple); color: white; border: none; border-radius: 12px; cursor: pointer; transition: 0.3s; flex-shrink: 0; }
     .btn-send:hover { background: #7A1DD0; box-shadow: 0 0 15px rgba(155, 48, 255, 0.4); }
     
-    .preview-area { display: flex; gap: 12px; margin-bottom: 10px; overflow-x: auto; }
+    .preview-area { display: flex; gap: 8px; margin-bottom: 8px; overflow-x: auto; }
     
     .jumping-dots { display: inline-flex; margin-left: 8px; }
     .jumping-dots span { animation: jump 1.4s infinite both; height: 5px; width: 5px; background: var(--vibrant-cyan); border-radius: 50%; margin: 0 2px; }
@@ -104,7 +113,6 @@
 </style>
 
 <script>
-    // ACUMULADOR DE FOTOS ESTILO WHATSAPP PARA O CHAT
     let selectedChatImages = [];
     const input = document.getElementById('image-upload');
     const preview = document.getElementById('selected-images');
@@ -113,7 +121,7 @@
     const textarea = document.querySelector('.text-input');
 
     textarea.addEventListener('input', function() {
-        this.style.height = '48px';
+        this.style.height = '44px';
         this.style.height = (this.scrollHeight) + 'px';
     });
 
@@ -134,8 +142,8 @@
             
             const img = document.createElement('img');
             img.src = URL.createObjectURL(file);
-            img.style.width = '60px';
-            img.style.height = '60px';
+            img.style.width = '50px';
+            img.style.height = '50px';
             img.style.objectFit = 'cover';
             img.style.borderRadius = '8px';
             img.style.border = '1px solid var(--vibrant-cyan)';
@@ -178,7 +186,6 @@
 
         if (!textContent && !hasImage) return;
 
-        // Injeta as imagens acumuladas
         formData.delete('images');
         selectedChatImages.forEach(file => formData.append('images', file));
 
@@ -195,9 +202,9 @@
         
         chatMessages.insertAdjacentHTML('beforeend', userHtml);
         form.reset(); 
-        selectedChatImages = []; // Limpa o acumulador
+        selectedChatImages = []; 
         updateChatPreview(); 
-        textarea.style.height = '48px'; 
+        textarea.style.height = '44px'; 
         scrollToBottom();
 
         const thinkingId = 'thinking-' + Date.now();
