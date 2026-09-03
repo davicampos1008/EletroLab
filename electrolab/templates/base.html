@@ -4,6 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- TAGS PARA O APP NO CELULAR -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#121218">
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    
     <title>{% block title %}ElectroLab AI{% endblock %}</title>
 
     <link rel="icon" type="image/jpeg" href="{% static 'logo.jfif' %}">
@@ -104,6 +111,62 @@
         h1, h2, h3 { color: var(--text-main); font-weight: 700; }
         a { color: var(--vibrant-cyan); text-decoration: none; transition: 0.3s; }
         a:hover { text-shadow: 0 0 8px var(--vibrant-cyan); }
+
+        /* ========================================= */
+        /* 📱 OTIMIZAÇÃO PARA CELULARES E TABLETS    */
+        /* ========================================= */
+        @media (max-width: 768px) {
+            /* Ajusta os espaços da tela principal */
+            .container { 
+                padding: 70px 15px 20px 15px !important; 
+            }
+            
+            /* Títulos menores para caber na tela */
+            h1 { font-size: 1.5rem !important; }
+            h2 { font-size: 1.2rem !important; }
+            
+            /* Os botões do menu ficam mais acessíveis */
+            .menu-toggle {
+                top: 10px;
+                left: 10px;
+                padding: 10px 14px;
+                font-size: 22px;
+            }
+
+            /* Balões de chat ajustados para a largura da tela */
+            .msg-bubble { 
+                max-width: 95% !important; 
+                padding: 12px 15px !important;
+                font-size: 0.9rem !important;
+            }
+            
+            /* Ajusta as grades de botões para ficarem um embaixo do outro */
+            div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+            }
+
+            /* Oculta as imagens muito grandes do topo (se houver) para economizar espaço */
+            img[style*="width: 300px"] {
+                width: 200px !important;
+                margin-top: 50px !important;
+            }
+            
+            /* Entradas de texto adaptadas para dedo */
+            input, select, textarea, button, .btn-primary {
+                font-size: 16px !important; /* Previne o zoom automático do iOS */
+                padding: 14px !important;
+            }
+            
+            /* Sidebar um pouco mais larga no celular para facilitar o toque */
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar.open {
+                box-shadow: 10px 0 30px rgba(0,0,0,0.8);
+            }
+        }
+        
     </style>
 
     <script>

@@ -1,0 +1,16 @@
+{
+    "name": "ElectroLab AI",
+    "short_name": "ElectroLab",
+    "description": "Plataforma inteligente de engenharia e diagnóstico.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#121218",
+    "theme_color": "#121218",
+    "icons": [
+        {
+            "src": "logo.jfif",
+            "sizes": "192x192 512x512",
+            "type": "image/jpeg"
+        }
+    ]
+}
