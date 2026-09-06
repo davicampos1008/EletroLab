@@ -204,7 +204,7 @@
         this.style.height = (this.scrollHeight) + 'px';
     });
 
-    // Sem limite! Pode escolher quantas fotos quiser
+    // Pode escolher quantas fotos quiser (o mosaico vai comprimir depois)
     function handleFileSelection(files) {
         if (files.length > 0) {
             Array.from(files).forEach(file => selectedChatImages.push(file));
@@ -261,26 +261,27 @@
     scrollToBottom();
 
     // =========================================================
-    // A MÁGICA: FUNÇÃO QUE CRIA O MOSAICO DE IMAGENS
+    // MÁGICA ATUALIZADA: MOSAICO COM TRAVA DE TAMANHO
     // =========================================================
     async function criarMosaico(files) {
-        if (files.length === 1) return files[0]; // Se for só uma foto, não precisa de mosaico
+        if (files.length === 1) return files[0]; 
 
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 
-        // Calcula a grade (ex: 11 fotos viram uma grade de 4 colunas x 3 linhas)
         const cols = Math.ceil(Math.sqrt(files.length));
         const rows = Math.ceil(files.length / cols);
-        const imgSize = 800; // Tamanho de cada quadro para a IA ver com perfeição
+        
+        // 🔒 TRAVA DE SEGURANÇA: Garante que o mosaico nunca passe de tamanho limite (evita travar o servidor)
+        const maxCanvasSize = 1600; 
+        const imgSize = Math.floor(maxCanvasSize / Math.max(cols, rows));
 
         canvas.width = cols * imgSize;
         canvas.height = rows * imgSize;
         
-        ctx.fillStyle = '#121218'; // Fundo escuro
+        ctx.fillStyle = '#121218'; 
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Carrega todas as imagens
         const loadImage = (file) => new Promise((resolve) => {
             const img = new Image();
             img.onload = () => resolve(img);
@@ -289,7 +290,6 @@
 
         const images = await Promise.all(files.map(loadImage));
 
-        // Desenha as imagens lado a lado no Canvas
         images.forEach((img, index) => {
             const x = (index % cols) * imgSize;
             const y = Math.floor(index / cols) * imgSize;
@@ -308,11 +308,10 @@
             ctx.restore();
         });
 
-        // Converte o Canvas gigante em UMA ÚNICA imagem JPG compactada
         return new Promise(resolve => {
             canvas.toBlob(blob => {
                 resolve(new File([blob], "mosaico.jpg", { type: "image/jpeg" }));
-            }, 'image/jpeg', 0.85); // 85% de qualidade
+            }, 'image/jpeg', 0.80); // Compressão em 80% (muito leve)
         });
     }
 
@@ -324,10 +323,8 @@
 
         if (!textContent && !hasImage) return;
 
-        // Limpa o formulário real para colocarmos o Mosaico depois
         formData.delete('images');
 
-        // Mostra as fotos originais na tela para o usuário (fica bonito)
         const userBgClass = projectType === 'programacao' ? 'bg-programacao' : 'bg-eletronica';
         let userHtml = `<div class="msg-row user-row"><div class="msg-bubble msg-user ${userBgClass}">`;
         if (textContent) userHtml += `<div>${textContent.replace(/\n/g, '<br>')}</div>`;
@@ -342,7 +339,6 @@
         
         chatMessages.insertAdjacentHTML('beforeend', userHtml);
         
-        // Põe os "pontinhos de pensando" na tela
         const thinkingId = 'thinking-' + Date.now();
         const thinkingColor = projectType === 'programacao' ? 'color: #DDA0DD;' : 'color: var(--vibrant-cyan);';
         const thinkingText = projectType === 'programacao' ? 'Arquiteto IA processando código e lógica' : 'Engenheiro IA avaliando as imagens';
@@ -356,23 +352,26 @@
         chatMessages.insertAdjacentHTML('beforeend', thinkingHtml);
         scrollToBottom();
 
-        // Limpa a caixa de texto
         form.reset(); 
         const backupImages = [...selectedChatImages];
         selectedChatImages = []; 
         updateChatPreview(); 
         textarea.style.height = '44px'; 
 
-        // CRIA O MOSAICO NESTE MOMENTO E ENVIA PRO SERVIDOR!
         if (hasImage) {
             const arquivoFinal = await criarMosaico(backupImages);
-            formData.append('images', arquivoFinal); // Envia apenas 1 arquivo!
+            formData.append('images', arquivoFinal); 
         }
 
         try {
             const response = await fetch(window.location.href, { method: 'POST', body: formData, headers: {'X-Requested-With': 'XMLHttpRequest'} });
-            const dataText = await response.json();
+            
+            // 🚨 DETECTOR DE ERRO DO SERVIDOR: Se o Django recusar a imagem e gerar um HTML de erro, barramos aqui.
+            if (!response.ok) {
+                throw new Error(`Falha no Servidor Django (Código ${response.status}). Veja o terminal.`);
+            }
 
+            const dataText = await response.json();
             document.getElementById(thinkingId).remove();
 
             if (dataText.resposta_html) {
@@ -382,7 +381,8 @@
             scrollToBottom();
 
         } catch (error) {
-            document.getElementById(`thinking-text-${thinkingId}`).innerHTML = "❌ Erro nos servidores de IA.";
+            // Agora, se algo der errado, a mensagem na tela será exata e mostrará o erro real
+            document.getElementById(`thinking-text-${thinkingId}`).innerHTML = `❌ Erro: ${error.message}`;
             document.getElementById(`thinking-text-${thinkingId}`).style.color = "#FF4444";
             const dots = document.querySelector(`#${thinkingId} .jumping-dots`);
             if(dots) dots.remove();
