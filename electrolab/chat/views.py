@@ -59,7 +59,7 @@ def chat_view(request, id):
             if tipo == 'eletronica':
                 dados_visao = None
                 
-                # Passo A: Se tiver imagem, chama a IA de Visão primeiro
+                # Passo A: Se tiver imagem, o JS no celular já criou um Mosaico e enviou apenas 1 imagem perfeita!
                 if imagens:
                     img_b64 = comprimir_imagem_para_ia(imagens[0])
                     dados_visao = analisar_imagem_qwen(img_b64)
@@ -71,7 +71,7 @@ def chat_view(request, id):
                     tipo_projeto='eletronica'
                 )
 
-           # ==========================================
+            # ==========================================
             # FLUXO 2: ESTÚDIO DE PROGRAMAÇÃO (O NOVO FLUXO INTELIGENTE)
             # ==========================================
             elif tipo == 'programacao':
@@ -134,11 +134,11 @@ def chat_view(request, id):
                 Message.objects.create(conversation=conversation, role='ai', content=resposta_final_ia)
                 return JsonResponse({'status': 'sucesso', 'resposta_html': resposta_final_ia})
             else:
-                # SE O OPENROUTER LIMITAR A TAXA, DESENHA O AVISO NO CHAT (Sem status=500 para o JS ler o HTML)
+                # SE O OPENROUTER LIMITAR A TAXA, DESENHA O AVISO NO CHAT
                 alerta_erro = """
                 <div style="background: rgba(255, 68, 68, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #FF4444; margin-top: 10px;">
                     <h4 style="margin-top: 0; color: #FF4444;">⚠️ Instabilidade ou Limite de Taxa (OpenRouter)</h4>
-                    <p style="color: #E0E0E0; font-size: 0.95rem;">As IAs gratuitas limitaram o nosso acesso temporariamente porque nossa dupla de agentes enviou requisições em sequência. Não se preocupe, <b>sua mensagem foi salva no histórico.</b></p>
+                    <p style="color: #E0E0E0; font-size: 0.95rem;">As IAs gratuitas limitaram o nosso acesso temporariamente. Não se preocupe, <b>sua mensagem foi salva no histórico.</b></p>
                     <p style="color: #E0E0E0; font-size: 0.95rem;"><b>Como resolver:</b> Aguarde uns 10 segundos e envie <i>"continue"</i>. O sistema buscará outra IA do rodízio livre!</p>
                 </div>
                 """
@@ -166,7 +166,6 @@ def chat_view(request, id):
         'conversation': conversation,
         'messages': messages
     })
-
 
 # ==========================================
 # OUTRAS VIEWS MANTIDAS

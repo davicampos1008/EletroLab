@@ -204,7 +204,7 @@
         this.style.height = (this.scrollHeight) + 'px';
     });
 
-    // Função única para lidar com os dois botões
+    // Sem limite! Pode escolher quantas fotos quiser
     function handleFileSelection(files) {
         if (files.length > 0) {
             Array.from(files).forEach(file => selectedChatImages.push(file));
@@ -212,15 +212,8 @@
         updateChatPreview();
     }
 
-    galleryInput.addEventListener('change', function () {
-        handleFileSelection(this.files);
-        this.value = ''; 
-    });
-
-    cameraInput.addEventListener('change', function () {
-        handleFileSelection(this.files);
-        this.value = ''; 
-    });
+    galleryInput.addEventListener('change', function () { handleFileSelection(this.files); this.value = ''; });
+    cameraInput.addEventListener('change', function () { handleFileSelection(this.files); this.value = ''; });
 
     function updateChatPreview() {
         preview.innerHTML = '';
@@ -267,6 +260,62 @@
     function scrollToBottom() { chatMessages.scrollTop = chatMessages.scrollHeight; }
     scrollToBottom();
 
+    // =========================================================
+    // A MÁGICA: FUNÇÃO QUE CRIA O MOSAICO DE IMAGENS
+    // =========================================================
+    async function criarMosaico(files) {
+        if (files.length === 1) return files[0]; // Se for só uma foto, não precisa de mosaico
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Calcula a grade (ex: 11 fotos viram uma grade de 4 colunas x 3 linhas)
+        const cols = Math.ceil(Math.sqrt(files.length));
+        const rows = Math.ceil(files.length / cols);
+        const imgSize = 800; // Tamanho de cada quadro para a IA ver com perfeição
+
+        canvas.width = cols * imgSize;
+        canvas.height = rows * imgSize;
+        
+        ctx.fillStyle = '#121218'; // Fundo escuro
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Carrega todas as imagens
+        const loadImage = (file) => new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.src = URL.createObjectURL(file);
+        });
+
+        const images = await Promise.all(files.map(loadImage));
+
+        // Desenha as imagens lado a lado no Canvas
+        images.forEach((img, index) => {
+            const x = (index % cols) * imgSize;
+            const y = Math.floor(index / cols) * imgSize;
+
+            const ratio = Math.max(imgSize / img.width, imgSize / img.height);
+            const w = img.width * ratio;
+            const h = img.height * ratio;
+            const dx = x + (imgSize - w) / 2;
+            const dy = y + (imgSize - h) / 2;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(x, y, imgSize, imgSize);
+            ctx.clip();
+            ctx.drawImage(img, dx, dy, w, h);
+            ctx.restore();
+        });
+
+        // Converte o Canvas gigante em UMA ÚNICA imagem JPG compactada
+        return new Promise(resolve => {
+            canvas.toBlob(blob => {
+                resolve(new File([blob], "mosaico.jpg", { type: "image/jpeg" }));
+            }, 'image/jpeg', 0.85); // 85% de qualidade
+        });
+    }
+
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
         const formData = new FormData(form);
@@ -275,9 +324,10 @@
 
         if (!textContent && !hasImage) return;
 
+        // Limpa o formulário real para colocarmos o Mosaico depois
         formData.delete('images');
-        selectedChatImages.forEach(file => formData.append('images', file));
 
+        // Mostra as fotos originais na tela para o usuário (fica bonito)
         const userBgClass = projectType === 'programacao' ? 'bg-programacao' : 'bg-eletronica';
         let userHtml = `<div class="msg-row user-row"><div class="msg-bubble msg-user ${userBgClass}">`;
         if (textContent) userHtml += `<div>${textContent.replace(/\n/g, '<br>')}</div>`;
@@ -291,16 +341,11 @@
         userHtml += `</div></div>`;
         
         chatMessages.insertAdjacentHTML('beforeend', userHtml);
-        form.reset(); 
-        selectedChatImages = []; 
-        updateChatPreview(); 
-        textarea.style.height = '44px'; 
-        scrollToBottom();
-
+        
+        // Põe os "pontinhos de pensando" na tela
         const thinkingId = 'thinking-' + Date.now();
         const thinkingColor = projectType === 'programacao' ? 'color: #DDA0DD;' : 'color: var(--vibrant-cyan);';
-        const thinkingText = projectType === 'programacao' ? 'Arquiteto IA processando código e lógica' : 'Engenheiro IA analisando projeto';
-        
+        const thinkingText = projectType === 'programacao' ? 'Arquiteto IA processando código e lógica' : 'Engenheiro IA avaliando as imagens';
         const thinkingHtml = `
             <div id="${thinkingId}" class="msg-row ai-row">
                 <div class="msg-bubble msg-ai border-dynamic-${projectType}" style="display: flex; align-items: center; opacity: 0.8; ${thinkingColor}">
@@ -311,22 +356,26 @@
         chatMessages.insertAdjacentHTML('beforeend', thinkingHtml);
         scrollToBottom();
 
+        // Limpa a caixa de texto
+        form.reset(); 
+        const backupImages = [...selectedChatImages];
+        selectedChatImages = []; 
+        updateChatPreview(); 
+        textarea.style.height = '44px'; 
+
+        // CRIA O MOSAICO NESTE MOMENTO E ENVIA PRO SERVIDOR!
+        if (hasImage) {
+            const arquivoFinal = await criarMosaico(backupImages);
+            formData.append('images', arquivoFinal); // Envia apenas 1 arquivo!
+        }
+
         try {
             const response = await fetch(window.location.href, { method: 'POST', body: formData, headers: {'X-Requested-With': 'XMLHttpRequest'} });
             const dataText = await response.json();
 
             document.getElementById(thinkingId).remove();
 
-            if (dataText.status === 'processando') {
-                const finalAiHtml = `
-                    <div class="msg-row ai-row">
-                        <div class="msg-bubble msg-ai border-dynamic-${projectType}">
-                            <h4>⚙️ Análise em Segundo Plano Iniciada</h4>
-                            <p>Os dados foram enviados para o servidor profundo.</p>
-                        </div>
-                    </div>`;
-                chatMessages.insertAdjacentHTML('beforeend', finalAiHtml);
-            } else if (dataText.resposta_html) {
+            if (dataText.resposta_html) {
                 const finalAiHtml = `<div class="msg-row ai-row"><div class="msg-bubble msg-ai border-dynamic-${projectType}">${dataText.resposta_html}</div></div>`;
                 chatMessages.insertAdjacentHTML('beforeend', finalAiHtml);
             }
