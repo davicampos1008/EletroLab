@@ -12,25 +12,20 @@
         <h1 style="margin-top: 0; margin-bottom: 10px;">🔍 Radar de Garimpo & Sucata</h1>
         <p style="color: var(--text-muted); margin-bottom: 25px;">Tire fotos na hora ou selecione da galeria para a IA avaliar se vale a pena resgatar.</p>
 
-        <!-- FORMULÁRIO COM OPÇÕES SEPARADAS DE CÂMERA E GALERIA -->
+        <!-- FORMULÁRIO COM BOTÃO ÚNICO INTELIGENTE -->
         <form method="post" enctype="multipart/form-data" id="scoutForm">
             {% csrf_token %}
             
             <div style="margin-bottom: 20px; text-align: center;">
-                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-bottom: 15px;">
-                    <!-- Botão Direto para a Câmera -->
-                    <label for="cameraDirectInput" style="flex: 1; min-width: 140px; padding: 20px 15px; border: 2px dashed var(--vibrant-cyan); border-radius: 12px; background: rgba(0,255,255,0.05); cursor: pointer; text-align: center;">
-                        <div style="font-size: 28px; margin-bottom: 5px;">📸</div>
-                        <span style="color: var(--vibrant-cyan); font-weight: bold; font-size: 0.95rem;">Tirar Foto</span>
+                <div style="display: flex; justify-content: center; margin-bottom: 15px;">
+                    
+                    <!-- Este botão único sem 'multiple' aciona o menu Câmera/Galeria nativo do celular -->
+                    <label for="unifiedInput" style="width: 100%; max-width: 280px; padding: 20px 15px; border: 2px dashed var(--vibrant-cyan); border-radius: 12px; background: rgba(0,255,255,0.05); cursor: pointer; text-align: center; transition: 0.3s;">
+                        <div style="font-size: 32px; margin-bottom: 5px;">📸</div>
+                        <span style="color: var(--vibrant-cyan); font-weight: bold; font-size: 1.1rem;">Câmera ou Galeria</span>
                     </label>
-                    <input type="file" id="cameraDirectInput" accept="image/*" capture="environment" style="display: none;">
-
-                    <!-- Botão para Galeria (Múltiplas) -->
-                    <label for="galleryInput" style="flex: 1; min-width: 140px; padding: 20px 15px; border: 2px dashed var(--electric-purple); border-radius: 12px; background: rgba(155,48,255,0.05); cursor: pointer; text-align: center;">
-                        <div style="font-size: 28px; margin-bottom: 5px;">🖼️</div>
-                        <span style="color: #DDA0DD; font-weight: bold; font-size: 0.95rem;">Abrir Galeria</span>
-                    </label>
-                    <input type="file" id="galleryInput" accept="image/*" multiple style="display: none;">
+                    <input type="file" id="unifiedInput" accept="image/*" style="display: none;">
+                    
                 </div>
                 
                 <!-- Miniaturas das fotos acumuladas -->
@@ -75,7 +70,7 @@
     </div>
 </div>
 
-<!-- Estilo CSS dos pontinhos saltitantes idêntico ao do chat -->
+<!-- Estilo CSS dos pontinhos saltitantes -->
 <style>
     .jumping-dots { display: inline-flex; margin-left: 4px; vertical-align: middle; }
     .jumping-dots span { animation: jump 1.4s infinite both; height: 5px; width: 5px; background: #121218; border-radius: 50%; margin: 0 2px; }
@@ -87,26 +82,17 @@
 
 <script>
     let selectedFiles = [];
-    const cameraDirectInput = document.getElementById('cameraDirectInput');
-    const galleryInput = document.getElementById('galleryInput');
+    const unifiedInput = document.getElementById('unifiedInput');
     const previewContainer = document.getElementById('previewContainer');
     const btnScout = document.getElementById('btnScout');
 
-    function handleFiles(files) {
-        if (files.length > 0) {
-            Array.from(files).forEach(file => selectedFiles.push(file));
+    // Ao escolher a foto da Câmera ou Galeria, ela entra para a lista!
+    unifiedInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            Array.from(this.files).forEach(file => selectedFiles.push(file));
         }
         updatePreview();
-    }
-
-    cameraDirectInput.addEventListener('change', function() {
-        handleFiles(this.files);
-        this.value = '';
-    });
-
-    galleryInput.addEventListener('change', function() {
-        handleFiles(this.files);
-        this.value = '';
+        this.value = ''; // Reseta para permitir tirar outra foto em seguida
     });
 
     function updatePreview() {
@@ -161,7 +147,6 @@
     scoutForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        // Ativa a animação dos pontinhos dentro do botão
         btnScout.innerHTML = `🔍 Avaliando fotos<div class="jumping-dots"><span></span><span></span><span></span></div>`;
         btnScout.disabled = true;
 
