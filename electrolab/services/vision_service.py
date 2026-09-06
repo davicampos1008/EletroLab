@@ -113,7 +113,15 @@ def analisar_imagem_qwen(base64_image):
             
             if response.status_code == 200:
                 data = response.json()
-                conteudo_bruto = data['choices'][0]['message']['content'].strip()
+                
+                # PROTEÇÃO CONTRA RESPOSTA VAZIA (RESOLVE O ERRO DE NONETYPE)
+                conteudo_bruto = data.get('choices', [{}])[0].get('message', {}).get('content')
+                
+                if not conteudo_bruto:
+                    print(f"⚠️ {modelo} retornou conteúdo vazio. Pulando para o próximo...")
+                    continue
+                    
+                conteudo_bruto = conteudo_bruto.strip()
                 
                 # Limpeza de formatação
                 if conteudo_bruto.startswith('```json'): conteudo_bruto = conteudo_bruto[7:]

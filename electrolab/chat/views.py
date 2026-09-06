@@ -16,15 +16,13 @@ from services.text_service import gerar_resposta_texto
 from services.project_ai_service import gerar_resposta_projeto_codigo
 
 def comprimir_imagem_para_ia(imagem_upload):
-    """Comprime a imagem para não estourar o limite da API."""
-    img = Image.open(imagem_upload)
-    if img.mode != 'RGB':
-        img = img.convert('RGB')
-    img.thumbnail((800, 800))
-    buffer = io.BytesIO()
-    img.save(buffer, format="JPEG", quality=75)
-    return base64.b64encode(buffer.getvalue()).decode('utf-8')
-
+    """
+    O Javascript (no celular/PC) já fez o Mosaico e comprimiu a imagem.
+    Não precisamos mais usar o Pillow para abrir e gastar memória RAM do servidor!
+    Basta ler os bytes que chegaram e codificar para a IA.
+    """
+    image_bytes = imagem_upload.read()
+    return base64.b64encode(image_bytes).decode('utf-8')
 
 def chat_view(request, id):
     conversation = get_object_or_404(Conversation, id=id)
