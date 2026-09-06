@@ -3,35 +3,27 @@ import requests
 from projects.models import UserTool
 
 def obter_modelos_texto_gratuitos():
-    """Busca dinamicamente modelos de texto gratuitos no OpenRouter."""
     try:
-        print("🔍 Buscando IAs de texto gratuitas hoje...")
         response = requests.get("https://openrouter.ai/api/v1/models", timeout=10)
-        
         if response.status_code == 200:
             modelos = response.json().get("data", [])
             modelos_validos = []
-            
             for m in modelos:
                 pricing = m.get("pricing", {})
                 if str(pricing.get("prompt")) == "0" and str(pricing.get("completion")) == "0":
                     id_modelo = m.get("id", "").lower()
                     if "safety" not in id_modelo and "moderation" not in id_modelo:
                         modelos_validos.append(m["id"])
-            
             if "openrouter/free" not in modelos_validos:
                 modelos_validos.append("openrouter/free")
-                
             return modelos_validos[:4]
     except:
         pass
-    
     return ["openrouter/free"]
 
-def gerar_resposta_texto(dados_visao, texto_usuario):
+def gerar_resposta_texto(dados_visao, texto_usuario, tipo_projeto="eletronica"):
     api_key = os.environ.get("OPENROUTER_API_KEY")
-    
-    # Pega as ferramentas cadastradas pelo usuário no banco de dados
+
     try:
         ferramentas_usuario = list(UserTool.objects.filter(disponivel=True).values_list('nome_ferramenta', flat=True))
         ferramentas_ausentes = list(UserTool.objects.filter(disponivel=False).values_list('nome_ferramenta', flat=True))
@@ -41,25 +33,34 @@ def gerar_resposta_texto(dados_visao, texto_usuario):
 
     modelos_texto = obter_modelos_texto_gratuitos()
 
-    prompt_completo = f"""Você é a IA principal do ElectroLab, um Engenheiro Sênior e Especialista em Reparos.
-    Sua missão é ler os DADOS DA IMAGEM e o COMANDO DO USUÁRIO e entregar uma resposta profunda, rica e continuável.
-    
-    RESTRIÇÕES DE BANCADA DO USUÁRIO:
-    - Ferramentas que ele POSSUI e pode usar: {ferramentas_usuario if ferramentas_usuario else 'Nenhuma cadastrada, assumir padrão básico'}
-    - Ferramentas que ele NÃO POSSUI: {ferramentas_ausentes if ferramentas_ausentes else 'Nenhuma'}
-    (ATENÇÃO: É ESTRITAMENTE PROIBIDO sugerir ou orientar o uso de qualquer ferramenta que esteja na lista de ausentes).
+    if tipo_projeto == "programacao":
+        papel = "Arquiteta de Software Sênior, Mentora e Professora de Programação."
+        diretrizes = """
+        1. Você é a Líder do Projeto. Sua primeira função é DEBATER E PLANEJAR (design, arquitetura, linguagens, banco de dados, ideias) junto com o usuário ANTES de codificar.
+        2. Enquanto estiver na fase de planejamento, NÃO gere códigos completos. Aja como um consultor sênior orientando o usuário.
+        3. SE O USUÁRIO INDICAR QUE A IDEIA ESTÁ PRONTA OU PEDIR PARA GERAR/ESCREVER O CÓDIGO FINAL, você DEVE escrever EXATAMENTE a tag [GERAR_CODIGO] no final da sua resposta. Essa tag aciona nosso robô programador nos bastidores.
+        4. Se nos 'DADOS DE CONTEXTO' abaixo já houver um 'CÓDIGO GERADO PELO PROGRAMADOR', sua missão muda: escreva um tutorial didático ensinando o usuário a instalar, rodar e entender o código. NUNCA coloque a tag [GERAR_CODIGO] neste caso.
+        """
+    else:
+        papel = "Engenheira Sênior, Especialista em Reparos Eletrônicos, Componentes e Professora de Bancada."
+        diretrizes = f"""
+        1. Escreva parágrafos explicativos, contexto técnico e princípios de funcionamento.
+        2. Se for um reparo, forneça um guia de desmontagem minucioso, alertando sobre choques e uso de ferramentas.
+        3. Considere as ferramentas da bancada. Possui: {ferramentas_usuario}. Faltam: {ferramentas_ausentes}. Nunca sugira usar o que ele não tem.
+        """
 
-    DIRETRIZES DE EXCELÊNCIA:
-    1. Não faça apenas listas. Escreva parágrafos explicativos, contexto técnico, princípios de funcionamento e possíveis adaptações ou usos alternativos (hacks).
-    2. Se for um reparo, forneça um guia de desmontagem minucioso, alertando sobre travas sensíveis, riscos de choque elétrico e apenas com as ferramentas disponíveis.
-    3. Deixe ganchos para que o usuário possa continuar a conversa (ex: "Se quiser, posso detalhar como testar o componente X").
-    4. Formate tudo em HTML limpo e elegante (<b>, <br>, <ul>, <li>, <h3>, <p>). NUNCA use Markdown (**).
+    prompt_completo = f"""Você é a IA principal do ElectroLab: {papel}
     
-    DADOS DA IMAGEM: 
+    DIRETRIZES:
+    {diretrizes}
+    
+    REGRA: Formate tudo em HTML limpo e elegante (<b>, <br>, <ul>, <li>, <h3>, <p>, <pre><code>). NUNCA use Markdown (**).
+    
+    DADOS DE CONTEXTO: 
     {dados_visao}
     
     COMANDO DO USUÁRIO: 
-    {texto_usuario if texto_usuario else 'Faça uma análise técnica profunda, guia de desmontagem e possíveis usos para este equipamento.'}"""
+    {texto_usuario if texto_usuario else 'Vamos continuar.'}"""
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -68,12 +69,10 @@ def gerar_resposta_texto(dados_visao, texto_usuario):
 
     for modelo in modelos_texto:
         try:
-            print(f"🧠 [IA de Texto] Pensando com {modelo}...")
+            print(f"🧠 [Professora IA - {tipo_projeto.upper()}] Pensando com {modelo}...")
             payload = {
                 "model": modelo,
-                "messages": [
-                    {"role": "user", "content": prompt_completo}
-                ],
+                "messages": [{"role": "user", "content": prompt_completo}],
                 "max_tokens": 2000
             }
             
@@ -81,17 +80,12 @@ def gerar_resposta_texto(dados_visao, texto_usuario):
             
             if response.status_code == 200:
                 resposta_html = response.json()['choices'][0]['message']['content'].strip()
-                
                 if resposta_html.startswith('```html'): resposta_html = resposta_html[7:]
                 if resposta_html.startswith('```'): resposta_html = resposta_html[3:]
                 if resposta_html.endswith('```'): resposta_html = resposta_html[:-3]
                 
-                print(f"✅ IA de Texto formatou a resposta com sucesso!")
                 return resposta_html.strip()
-            else:
-                continue
-                
-        except Exception as e:
+        except Exception:
             continue
             
-    return "<b>Erro no servidor:</b> Não foi possível formatar a resposta da IA de texto no momento."
+    return "<b>Erro no servidor:</b> Falha na IA de Texto/Professor."

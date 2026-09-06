@@ -1,24 +1,79 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
-from .models import InventoryItem, Project
-from chat.models import Conversation
+import base64
+import io
+from PIL import Image
+
+# Modelos
+from .models import Project, InventoryItem
+from chat.models import Conversation, Message
+
+# Seus serviços de IA para Inventário e Garimpo
 from services.inventory_service import analisar_pecas_para_estoque
 from services.scout_service import analisar_garimpo_sucata
-import base64
-from PIL import Image
-import io
 
-def project_list(request):
-    projects = Project.objects.all().order_by('-updated_at')
-    return render(request, 'projects/list.html', {'projects': projects})
+# ==========================================
+# 1. LISTAS SEPARADAS DE PROJETOS
+# ==========================================
+def lista_eletronica(request):
+    projetos = Project.objects.filter(tipo='eletronica').order_by('-created_at')
+    return render(request, 'projects/list_electronics.html', {'projects': projetos})
 
+def lista_programacao(request):
+    projetos = Project.objects.filter(tipo='programacao').order_by('-created_at')
+    return render(request, 'projects/list_programming.html', {'projects': projetos})
+
+# ==========================================
+# 2. CRIAÇÃO, ABERTURA E EXCLUSÃO DE PROJETOS
+# ==========================================
+def project_create(request):
+    tipo_projeto = request.GET.get('tipo', 'eletronica')
+    
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        tipo_post = request.POST.get('tipo', tipo_projeto)
+        
+        if name:
+            project = Project.objects.create(name=name, description=description, tipo=tipo_post)
+            # Cria a conversa principal e redireciona direto para o chat
+            conversation = Conversation.objects.create(project=project, title="Chat Principal")
+            return redirect('conversation', conversation.id)
+            
+    if tipo_projeto == 'programacao':
+        return render(request, 'projects/create_programming.html', {'tipo': tipo_projeto})
+    else:
+        return render(request, 'projects/create_electronics.html', {'tipo': tipo_projeto})
+
+def open_project_chat(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    conversation = project.conversations.first()
+    
+    if not conversation:
+        conversation = Conversation.objects.create(project=project, title="Chat Principal")
+        
+    return redirect('conversation', conversation.id)
+
+def project_delete(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    tipo = project.tipo
+    
+    # Exclui o projeto e todas as conversas/mensagens atreladas
+    project.delete()
+    
+    if tipo == 'programacao':
+        return redirect('list_programming')
+    return redirect('list_electronics')
+
+# ==========================================
+# 3. GARIMPO, ESTOQUE E FERRAMENTAS
+# ==========================================
 def scout_item_view(request):
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         imagens = request.FILES.getlist('images')
         if imagens:
             base64_lista = []
             for img in imagens:
-                # Comprime e redimensiona cada foto do celular para um tamanho leve e seguro
                 base64_encoded = comprimir_imagem_para_ia(img)
                 base64_lista.append(base64_encoded)
                 
@@ -28,27 +83,6 @@ def scout_item_view(request):
         return JsonResponse({'status': 'erro', 'mensagem': 'Nenhuma imagem enviada'})
     
     return render(request, 'inventory/scout.html')
-
-def project_create(request):
-    if request.method == 'POST':
-        name = request.POST.get('name', '').strip()
-        description = request.POST.get('description', '').strip()
-        if name:
-            project = Project.objects.create(name=name, description=description)
-            return redirect('project_detail', project_id=project.id)
-    return render(request, 'projects/create.html')
-
-def project_detail(request, project_id):
-    project = get_object_or_404(Project, id=project_id)
-    conversations = project.conversations.all().order_by('-updated_at')
-    
-    if request.method == 'POST':
-        title = request.POST.get('title', '').strip()
-        if title:
-            conversation = Conversation.objects.create(project=project, title=title)
-            return redirect('conversation', conversation_id=conversation.id)
-            
-    return render(request, 'projects/detail.html', {'project': project, 'conversations': conversations})
 
 def scan_inventory_view(request):
     if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':

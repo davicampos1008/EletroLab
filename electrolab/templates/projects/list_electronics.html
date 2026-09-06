@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Projetos de Eletrônica - ElectroLab AI{% endblock %}
+
+{% block content %}
+<!-- PUXA A LOGO GLOBAL -->
+{% include 'includes/logo.html' %}
+
+<div class="container" style="max-width: 900px; margin-top: 15px;">
+    <div style="background: var(--deep-navy); padding: 35px; border-radius: 16px; border: 1px solid rgba(0,255,255,0.1);">
+        
+        <!-- CABEÇALHO DA LISTA -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 30px;">
+            <div>
+                <h1 style="margin: 0; color: #FFFFFF;">⚡ Bancada de Eletrônica</h1>
+                <p style="color: var(--text-muted); margin: 5px 0 0 0;">Projetos de hardware, automação e reparos de placas.</p>
+            </div>
+            <!-- Passando um parâmetro na URL para o backend saber qual tipo criar -->
+            <a href="{% url 'project_create' %}?tipo=eletronica" class="btn-new-project">
+                ➕ Novo Projeto de Hardware
+            </a>
+        </div>
+
+        <!-- GRID DE PROJETOS -->
+        <div class="projects-grid">
+            {% for project in projects %}
+                <div class="project-card">
+                    <div class="project-header">
+                        <h3 class="project-title">{{ project.name }}</h3>
+                    </div>
+                    
+                    <!-- DATAS DE CRIAÇÃO E ATUALIZAÇÃO -->
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">
+                        Criado: {{ project.created_at|date:"d/m/Y" }} | Atualizado: {{ project.updated_at|date:"d/m/Y H:i" }}
+                    </div>
+                    
+                    <p class="project-desc">{{ project.description|default:"Iniciando diagnóstico e separação de componentes..."|truncatechars:90 }}</p>
+                    
+                    <!-- BOTÕES: ABRIR E EXCLUIR -->
+                    <div style="display: flex; gap: 10px;">
+                        <a href="{% url 'project_chat' project.id %}" class="btn-chat" style="flex: 1;">
+                            🔌 Abrir Projeto
+                        </a>
+                        <a href="{% url 'project_delete' project.id %}" onclick="return confirm('ATENÇÃO: Tem certeza que deseja excluir este projeto de eletrônica e todo o histórico do chat? Isso não pode ser desfeito!');" class="btn-delete" title="Excluir Projeto">
+                            🗑️
+                        </a>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty-state">
+                    <div class="empty-icon">🪛</div>
+                    <h3 style="color: var(--vibrant-cyan);">Bancada Vazia</h3>
+                    <p style="color: var(--text-muted);">Nenhum projeto de eletrônica ativo. Inicie um novo reparo ou automação!</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos do Botão de Criar */
+    .btn-new-project { background: linear-gradient(135deg, var(--vibrant-cyan) 0%, #0088AA 100%); color: #121218; padding: 12px 20px; border-radius: 12px; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
+    .btn-new-project:hover { box-shadow: 0 0 15px rgba(0, 255, 255, 0.4); transform: translateY(-2px); }
+    
+    /* Estilos do Grid e Cards */
+    .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .project-card { background: rgba(18,18,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; transition: 0.3s; }
+    .project-card:hover { border-color: var(--vibrant-cyan); box-shadow: 0 4px 15px rgba(0, 255, 255, 0.1); transform: translateY(-2px); }
+    .project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
+    .project-title { margin: 0; color: var(--vibrant-cyan); font-size: 1.2rem; line-height: 1.2; }
+    .project-desc { color: #E0E0E0; font-size: 0.95rem; line-height: 1.5; flex-grow: 1; margin-bottom: 20px; }
+    
+    /* Botões do Card */
+    .btn-chat { background: rgba(0, 255, 255, 0.1); color: var(--vibrant-cyan); border: 1px solid var(--vibrant-cyan); padding: 12px; border-radius: 10px; text-align: center; text-decoration: none; font-weight: bold; transition: 0.3s; font-size: 0.95rem; }
+    .btn-chat:hover { background: var(--vibrant-cyan); color: #121218; box-shadow: 0 0 15px rgba(0, 255, 255, 0.4); }
+    
+    .btn-delete { background: rgba(255,0,0,0.05); color: #FF4444; border: 1px solid rgba(255,0,0,0.3); padding: 12px; border-radius: 10px; text-decoration: none; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
+    .btn-delete:hover { background: #FF4444; color: white; box-shadow: 0 0 10px rgba(255,0,0,0.5); border-color: #FF4444; }
+
+    /* Estado Vazio */
+    .empty-state { grid-column: 1 / -1; text-align: center; padding: 50px 20px; background: rgba(255,255,255,0.02); border-radius: 14px; border: 2px dashed rgba(255,255,255,0.1); }
+    .empty-icon { font-size: 3.5rem; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(0,255,255,0.3)); }
+</style>
+{% endblock %}

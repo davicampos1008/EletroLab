@@ -2,9 +2,16 @@ from django.db import models
 
 class Project(models.Model):
     name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # É ESTA PARTE AQUI QUE O BANCO DE DADOS ESTÁ SENTINDO FALTA:
+    TIPO_CHOICES = (
+        ('eletronica', 'Eletrônica e Hardware'),
+        ('programacao', 'Programação e Software'),
+    )
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='eletronica')
 
     def __str__(self):
         return self.name

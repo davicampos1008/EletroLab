@@ -63,21 +63,30 @@
 </style>
 
 <div style="display: flex; justify-content: center; margin-top: 30px; margin-bottom: 20px;">
-    <!-- CORRIGIDO: Apontando exclusivamente para a logo.png -->
     <img src="{% static 'logo.png' %}" alt="ElectroLab AI" class="home-logo">
 </div>
 
 <div class="container" style="max-width: 900px; text-align: center; margin-top: 10px;">
     <h1 style="font-size: 1.8rem; margin-bottom: 8px;">Bem-vindo ao <span style="color: var(--vibrant-cyan);">ElectroLab AI</span></h1>
-    <p style="color: var(--text-muted); margin-bottom: 40px; font-size: 0.95rem;">Sua plataforma inteligente de engenharia, diagnóstico de placas e controle de estoque.</p>
+    <p style="color: var(--text-muted); margin-bottom: 40px; font-size: 0.95rem;">Sua plataforma inteligente de engenharia, diagnóstico de placas e códigos de programação.</p>
 
     <div class="grid-atalhos">
         
-        <a href="{% url 'project_list' %}" style="text-decoration: none;">
-            <div class="card-atalho" style="border: 1px solid rgba(0,255,255,0.1);" onmouseover="this.style.borderColor='var(--vibrant-cyan)'" onmouseout="this.style.borderColor='rgba(0,255,255,0.1)'">
-                <div class="card-icon">📁</div>
-                <h3 class="card-title">Meus Projetos</h3>
-                <p class="card-desc">Gerencie seus equipamentos e históricos de análises.</p>
+        <!-- NOVO: Link para a Lista de Eletrônica -->
+        <a href="{% url 'list_electronics' %}" style="text-decoration: none;">
+            <div class="card-atalho" style="border: 1px solid rgba(0,255,255,0.2);" onmouseover="this.style.borderColor='var(--vibrant-cyan)'" onmouseout="this.style.borderColor='rgba(0,255,255,0.2)'">
+                <div class="card-icon">⚡</div>
+                <h3 class="card-title">Eletrônica & Hardware</h3>
+                <p class="card-desc">Gerencie reparos de placas, automação e projetos de bancada.</p>
+            </div>
+        </a>
+
+        <!-- NOVO: Link para a Lista de Programação -->
+        <a href="{% url 'list_programming' %}" style="text-decoration: none;">
+            <div class="card-atalho" style="border: 1px solid rgba(155,48,255,0.2);" onmouseover="this.style.borderColor='var(--electric-purple)'" onmouseout="this.style.borderColor='rgba(155,48,255,0.2)'">
+                <div class="card-icon">💻</div>
+                <h3 class="card-title">Código & Software</h3>
+                <p class="card-desc">Crie scripts, aplicativos e lógicas de programação.</p>
             </div>
         </a>
 
@@ -89,17 +98,9 @@
             </div>
         </a>
 
-        <a href="{% url 'project_create' %}" style="text-decoration: none;">
-            <div class="card-atalho" style="border: 1px solid rgba(155,48,255,0.2);" onmouseover="this.style.borderColor='var(--electric-purple)'" onmouseout="this.style.borderColor='rgba(155,48,255,0.2)'">
-                <div class="card-icon">➕</div>
-                <h3 class="card-title">Nova Análise</h3>
-                <p class="card-desc">Inicie um novo diagnóstico visual ou textual por IA.</p>
-            </div>
-        </a>
-
         <a href="{% url 'scan_inventory_view' %}" style="text-decoration: none;">
             <div class="card-atalho" style="border: 1px solid rgba(0,255,255,0.2);" onmouseover="this.style.borderColor='var(--vibrant-cyan)'" onmouseout="this.style.borderColor='rgba(0,255,255,0.2)'">
-                <div class="card-icon">⚡</div>
+                <div class="card-icon">🔍</div>
                 <h3 class="card-title">Varredura de Estoque</h3>
                 <p class="card-desc">Escaneie placas e salve componentes automaticamente.</p>
             </div>
@@ -117,7 +118,7 @@
             <div class="card-atalho" style="border: 1px solid rgba(255,255,255,0.1);" onmouseover="this.style.borderColor='var(--vibrant-cyan)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'">
                 <div class="card-icon">⚙️</div>
                 <h3 class="card-title">Configurações</h3>
-                <p class="card-desc">Personalize cores, temas e preferências.</p>
+                <p class="card-desc">Personalize cores, ferramentas e preferências.</p>
             </div>
         </a>
 
